@@ -7,7 +7,6 @@ import {
   ChevronsRight,
   House,
   Layers,
-  PlusCircle,
   X,
 } from "lucide-react";
 import { DAYS } from "@/lib/days";
@@ -100,6 +99,7 @@ function Nav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () =>
         })}
       </ul>
 
+      {/* Hint box hidden — decks are now added routinely.
       {!collapsed && (
         <div className="mt-6 rounded-lg border border-dashed border-stone-300 bg-stone-50 p-3">
           <p className="flex items-center gap-1.5 text-xs font-semibold text-stone-700">
@@ -112,6 +112,7 @@ function Nav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () =>
           </p>
         </div>
       )}
+      */}
     </nav>
   );
 }
