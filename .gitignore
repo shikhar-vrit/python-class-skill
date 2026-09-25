@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# Generated slide copies + manifest (rebuilt by predev/prebuild on every machine and on Vercel)
+public/slides/*.html
+src/lib/days.generated.ts
+
+# Python class material (never deploy these)
+**/.venv/
+**/__pycache__/
+**/*.pyc
+
+# OS / editor
+.DS_Store
+*.local

@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#201d19">
+<title>Day 02 — Git Repository Setup &amp; GitHub CLI</title>
+<style>
+  :root{
+    --bg:#f6f2ea; --paper:#fffdf8; --ink:#221f1a; --muted:#726b5e; --line:#e6ddc9;
+    --accent-a:#b1502e; --accent-a-soft:#f3ded0;
+    --accent-b:#2f5d52; --accent-b-soft:#dfe9e2;
+    --dark:#201d19; --dark-ink:#f4efe4;
+    --code-bg:#1c1815; --code-fg:#efe8db; --code-kw:#8fd6c4; --code-str:#e9b483; --code-cm:#8a8277; --code-fn:#e7cd8f;
+    --shadow:0 26px 60px rgba(24,17,8,.22), 0 4px 14px rgba(24,17,8,.1);
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;overflow:hidden;background:var(--dark);color:var(--ink);font-family:var(--sans);}
+  button{font:inherit;}
+  .sprite{position:absolute;width:0;height:0;overflow:hidden;}
+  .icon{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+  .deck{min-height:100dvh;position:relative;background:var(--dark);}
+  .brand{position:fixed;z-index:5;top:clamp(14px,2.4vw,26px);left:clamp(16px,3vw,38px);display:flex;align-items:center;gap:9px;color:var(--dark-ink);opacity:.72;font-size:11px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;}
+  .brand .mark{width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(244,239,228,.4);border-radius:5px;font-family:var(--serif);font-size:12px;font-weight:700;}
+
+  .slides{min-height:100dvh;position:relative;z-index:1;}
+  .slide{position:absolute;inset:0;display:grid;place-items:center;padding:clamp(60px,7.5vw,88px) clamp(16px,6vw,90px) clamp(72px,8.5vw,104px);opacity:0;pointer-events:none;transform:translateX(38px);transition:opacity .22s ease, transform .32s cubic-bezier(.2,.75,.25,1);}
+  .slide.active{opacity:1;pointer-events:auto;transform:translateX(0);}
+  .slide.past{transform:translateX(-38px);}
+
+  .frame{--tint:var(--accent-a);--tint-soft:var(--accent-a-soft);width:min(1140px,100%);height:min(640px,calc(100dvh - 128px));min-height:420px;position:relative;overflow:hidden;border-radius:10px;background:var(--paper);box-shadow:var(--shadow);}
+  .frame.b{--tint:var(--accent-b);--tint-soft:var(--accent-b-soft);}
+  .frame.on-dark{background:var(--dark);}
+  .rule{height:3px;background:var(--tint);}
+
+  .body{height:calc(100% - 3px);padding:clamp(26px,4vw,52px) clamp(30px,4.6vw,58px);display:flex;flex-direction:column;overflow:hidden;position:relative;}
+
+  .kicker{display:flex;align-items:center;gap:10px;margin-bottom:clamp(14px,2vw,22px);flex-shrink:0;}
+  .kicker .tag{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid var(--tint);border-radius:999px;color:var(--tint);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;}
+  .kicker .tag .icon{width:13px;height:13px;}
+  .kicker .part{color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+
+  h1,h2,h3,p{margin:0;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,5.4vw,66px);line-height:1.02;letter-spacing:-.01em;max-width:760px;}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(25px,3.1vw,38px);line-height:1.08;letter-spacing:-.005em;max-width:780px;margin-bottom:clamp(10px,1.6vw,16px);}
+  .subtitle{color:var(--muted);font-size:clamp(15px,1.7vw,19px);line-height:1.45;max-width:660px;font-style:italic;font-family:var(--serif);}
+  .copy{margin-top:12px;color:#3c362d;font-size:clamp(14.5px,1.5vw,17px);line-height:1.52;max-width:640px;}
+
+  .content{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:10px;}
+  .split{flex:1;min-height:0;display:grid;grid-template-columns:minmax(240px,.9fr) minmax(320px,1.05fr);gap:clamp(24px,4vw,54px);align-items:center;}
+  .split.wide-left{grid-template-columns:minmax(260px,1.05fr) minmax(280px,.95fr);}
+
+  /* numbered rows list */
+  .rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
+  .rows li{display:flex;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line);}
+  .rows li:first-child{padding-top:0;}
+  .rows .n{flex-shrink:0;width:26px;color:var(--tint);font-family:var(--serif);font-weight:700;font-size:15px;}
+  .rows .t{color:#2e2a23;font-size:clamp(14px,1.35vw,16.5px);line-height:1.36;}
+  .rows.compact li{padding:7px 0;}
+
+  /* flow / process steps */
+  .flow{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);align-items:stretch;gap:0;}
+  .flow-step{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:18px 12px;position:relative;}
+  .flow-step .ic{width:44px;height:44px;display:grid;place-items:center;border-radius:50%;background:var(--tint-soft);color:var(--tint);}
+  .flow-step .ic .icon{width:20px;height:20px;}
+  .flow-step strong{font-family:var(--serif);font-size:clamp(15px,1.55vw,19px);font-weight:600;}
+  .flow-step small{color:var(--muted);font-size:12.5px;line-height:1.35;max-width:160px;}
+  .flow-connector{align-self:center;width:100%;height:1px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 11px);position:relative;top:-46px;margin:0 -8%;}
+  .flow-wrap{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;}
+
+  /* quote / problem callout */
+  .quote{border-left:3px solid var(--tint);background:var(--tint-soft);padding:clamp(22px,3.2vw,34px);border-radius:0 6px 6px 0;}
+  .quote p{font-family:var(--serif);font-size:clamp(19px,2.3vw,27px);font-weight:600;line-height:1.28;color:#2a251e;}
+  .quote p strong{color:var(--tint);}
+
+  /* code */
+  .code-panel{height:100%;display:flex;flex-direction:column;min-height:0;}
+  .code-label{display:inline-flex;align-self:flex-start;align-items:center;gap:7px;padding:6px 11px;border-radius:5px 5px 0 0;background:var(--code-bg);color:var(--code-cm);font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;}
+  .code-label .icon{width:13px;height:13px;color:var(--tint);}
+  pre{flex:1;min-height:190px;max-height:360px;margin:0;padding:clamp(16px,2.2vw,24px);overflow:auto;color:var(--code-fg);background:var(--code-bg);border-radius:0 6px 6px 6px;font-family:var(--mono);font-size:clamp(12px,1.15vw,14.5px);line-height:1.6;white-space:pre-wrap;}
+  .kw{color:var(--code-kw);} .fn{color:var(--code-fn);} .str{color:var(--code-str);} .cm{color:var(--code-cm);font-style:italic;}
+
+  /* divider slide */
+  .divider-body{height:100%;display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,6vw,80px);color:var(--dark-ink);}
+  .divider-body .num{font-family:var(--serif);font-size:clamp(60px,9vw,120px);font-weight:600;color:var(--tint);line-height:1;opacity:.9;}
+  .divider-body .p-label{margin:14px 0 6px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(244,239,228,.55);}
+  .divider-body h1{color:var(--dark-ink);font-size:clamp(34px,5vw,58px);}
+  .divider-body .subtitle{color:rgba(244,239,228,.68);font-style:italic;}
+
+  /* hero / closing */
+  .hero-body,.closing-body{height:100%;display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,6vw,80px);color:var(--dark-ink);}
+  .hero-body .mark,.closing-body .mark{width:52px;height:52px;display:grid;place-items:center;border:1.5px solid var(--tint);border-radius:8px;color:var(--tint);margin-bottom:22px;}
+  .hero-body .p-label,.closing-body .p-label{font-size:12px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--tint);margin-bottom:12px;}
+  .hero-body h1,.closing-body h1{color:var(--dark-ink);}
+  .hero-body .subtitle,.closing-body .subtitle{color:rgba(244,239,228,.68);}
+
+  /* practice */
+  .practice-box{border-left:3px solid var(--tint);background:var(--tint-soft);padding:clamp(20px,2.8vw,30px);border-radius:0 6px 6px 0;}
+  .practice-box h3{font-family:var(--serif);font-size:clamp(19px,2.1vw,24px);margin-bottom:9px;}
+  .practice-box p{color:#3c362d;font-size:clamp(14px,1.5vw,17px);line-height:1.48;}
+
+  /* cheatsheet */
+  .cheatgrid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-content:center;}
+  .cheatcard{border:1px solid var(--line);border-radius:6px;padding:12px 14px;background:#fffefb;}
+  .cheatcard code{display:block;font-family:var(--mono);font-size:12.5px;color:var(--tint);margin-bottom:5px;word-break:break-word;}
+  .cheatcard small{color:var(--muted);font-size:11.5px;line-height:1.3;display:block;}
+
+  /* remember */
+  .remember{flex:1;min-height:0;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+  .remember-item{border-top:3px solid var(--tint);padding:14px 12px;background:#fffefb;box-shadow:0 6px 16px rgba(24,17,8,.06);display:flex;flex-direction:column;gap:8px;}
+  .remember-item .n{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--tint);}
+  .remember-item p{font-size:12.5px;line-height:1.36;color:#2e2a23;}
+
+  .slide-number{position:absolute;right:clamp(22px,3.6vw,50px);bottom:clamp(16px,2.4vw,26px);color:#9a927f;font-size:11px;font-weight:700;letter-spacing:.08em;}
+
+  .controls{position:fixed;z-index:6;right:clamp(13px,3vw,36px);bottom:clamp(13px,2.2vw,26px);display:flex;gap:6px;align-items:center;padding:6px;border:1px solid rgba(244,239,228,.18);border-radius:8px;background:rgba(28,24,20,.9);box-shadow:0 10px 24px rgba(0,0,0,.25);}
+  .control{width:34px;height:34px;display:grid;place-items:center;padding:0;color:var(--dark-ink);border:0;border-radius:5px;background:transparent;cursor:pointer;}
+  .control:hover,.control:focus-visible{color:var(--dark);background:var(--dark-ink);outline:none;}
+  .control:disabled{opacity:.32;cursor:default;} .control:disabled:hover{color:var(--dark-ink);background:transparent;}
+  .counter{min-width:50px;color:var(--dark-ink);text-align:center;font-size:11px;font-weight:700;letter-spacing:.06em;}
+  .progress{position:fixed;z-index:7;left:0;right:0;bottom:0;height:4px;background:rgba(244,239,228,.15);}
+  .progress span{display:block;height:100%;width:0;background:var(--accent-a);transition:width .25s ease;}
+
+  @media (max-height:760px) and (min-width:761px){
+    .slide{padding-top:54px;padding-bottom:66px;}
+    .frame{height:calc(100dvh - 120px);}
+    .body{padding:24px 42px;}
+    h2{font-size:clamp(22px,2.8vw,32px);}
+  }
+
+  @media (max-width:760px){
+    .brand{font-size:9.5px;}
+    .slide{padding:56px 12px 72px;} .frame{height:min(760px,calc(100dvh - 132px));min-height:0;}
+    .body{padding:22px;overflow:auto;}
+    .split,.split.wide-left{grid-template-columns:1fr;gap:16px;}
+    .flow{grid-template-columns:1fr;gap:14px;} .flow-connector{display:none;}
+    .flow-step{flex-direction:row;text-align:left;justify-content:flex-start;padding:6px 0;}
+    .cheatgrid{grid-template-columns:1fr;} .remember{grid-template-columns:1fr;}
+    pre{min-height:160px;max-height:260px;}
+    .controls .control:first-child{display:none;} .control{width:31px;height:31px;}
+  }
+  @media print{
+    body{overflow:visible;background:#fff;}
+    .brand,.controls,.progress{display:none;}
+    .deck,.slides{min-height:auto;}
+    .slide{position:relative;display:block;opacity:1!important;transform:none!important;padding:0;page-break-after:always;}
+    .frame{width:100%;height:100vh;border-radius:0;box-shadow:none;}
+  }
+</style>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true">
+  <symbol id="code" viewBox="0 0 24 24"><path d="m8 9-3 3 3 3"/><path d="m16 9 3 3-3 3"/><path d="m14 5-4 14"/></symbol>
+  <symbol id="terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol>
+  <symbol id="download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+  <symbol id="box" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol>
+  <symbol id="shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="folder" viewBox="0 0 24 24"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 12h6M9 15h6"/></symbol>
+  <symbol id="globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <symbol id="repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></symbol>
+  <symbol id="pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/></symbol>
+  <symbol id="history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="monitor" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></symbol>
+  <symbol id="sliders" viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="m10.29 3.86-8.18 14.18A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-2.96L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="message" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></symbol>
+  <symbol id="list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+  <symbol id="logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+  <symbol id="left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></symbol>
+  <symbol id="full" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></symbol>
+  <symbol id="key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol>
+  <symbol id="git-branch" viewBox="0 0 24 24"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol>
+  <symbol id="cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h.79a4.5 4.5 0 1 1 0 9z"/></symbol>
+  <symbol id="lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+  <symbol id="link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+  <symbol id="copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+</svg>
+<main class="deck" aria-label="Day 02: Git Repository Setup and SSH Key Integration lesson">
+  <div class="brand"><span class="mark">Gi</span>Day 02 &bull; Git &amp; GitHub</div>
+  <div class="slides" id="slides"></div>
+  <nav class="controls" aria-label="Slide controls">
+    <button class="control" id="homeButton" type="button" title="First slide" aria-label="First slide"><svg class="icon"><use href="#home"/></svg></button>
+    <button class="control" id="previousButton" type="button" title="Previous slide" aria-label="Previous slide"><svg class="icon"><use href="#left"/></svg></button>
+    <span class="counter" id="counter" aria-live="polite"></span>
+    <button class="control" id="nextButton" type="button" title="Next slide" aria-label="Next slide"><svg class="icon"><use href="#right"/></svg></button>
+    <button class="control" id="fullButton" type="button" title="Fullscreen" aria-label="Fullscreen"><svg class="icon"><use href="#full"/></svg></button>
+  </nav>
+  <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+</main>
+<script>
+const slides = [
+  { kind:"hero", tint:"a", icon:"git-branch", part:"Day 02", eyebrow:"Git Repository Setup & GitHub CLI",
+    title:"Let's Learn Git", subtitle:"How to save your code's history, and connect to GitHub the easy way with gh." },
+
+  { kind:"remember", tint:"b", icon:"history", part:"Recap · Day 01", title:"What we learned yesterday",
+    subtitle:"A quick refresher before we start something new.",
+    items:["Programming means giving a computer precise, step-by-step instructions.",
+      "Python is a beginner-friendly, general-purpose language.",
+      "We installed Python and ran our first program with print().",
+      "The terminal is how we run, install, and check things.",
+      "A virtual environment (.venv) keeps each project's packages separate."] },
+
+  { kind:"divider", tint:"a", icon:"git-branch", part:"Part 01", title:"What is Git?",
+    subtitle:"A tool that remembers every version of your code." },
+
+  { kind:"bullets", tint:"a", icon:"git-branch", part:"Part 01 · What is Git?", title:"Git, in one slide",
+    subtitle:"It saves snapshots of your project over time.",
+    copy:"Every time you “commit”, Git takes a snapshot of your files. You can always go back, compare, or undo — nothing is ever really lost.",
+    rows:["Git tracks changes to your files over time","Each saved snapshot is called a commit","You can undo mistakes by going back to an old commit","Many people can work on the same project without overwriting each other"] },
+
+  { kind:"quote", tint:"a", icon:"alert", part:"Part 01 · What is Git?", title:"Why not just save copies?",
+    subtitle:"You've probably done this before — and it gets messy fast.",
+    rows:["final.py","final_v2.py","final_v2_ACTUAL.py","final_v2_fixed_final.py"],
+    quote:"<strong>Git replaces this mess</strong> with one folder and a full history of every change." },
+
+  { kind:"flow", tint:"a", icon:"repeat", part:"Part 01 · What is Git?", title:"How Git saves your work",
+    subtitle:"Three simple stages, every time.",
+    steps:[
+      {icon:"folder", label:"Working directory", text:"Where you edit files"},
+      {icon:"box", label:"Staging area", text:"Files you've chosen to save (git add)"},
+      {icon:"check", label:"Repository", text:"Saved snapshot (git commit)"} ] },
+
+  { kind:"divider", tint:"a", icon:"globe", part:"Part 02", title:"GitHub Website Setup",
+    subtitle:"First — create the free account everything else connects to." },
+
+  { kind:"bullets", tint:"a", icon:"globe", part:"Part 02 · GitHub setup", title:"Create your GitHub account",
+    subtitle:"GitHub is the website that hosts your Git repositories online.",
+    copy:"Do this before installing anything — every push, clone, and gh login connects to this account. Do it once.",
+    rows:["Go to github.com and click Sign up","Use a real email, then verify it from your inbox","Pick a simple username — it appears in every repo URL","Choose the Free plan — it's all you need for this course"] },
+
+  { kind:"bullets", tint:"a", icon:"folder", part:"Part 02 · GitHub setup", title:"Create your first repo on GitHub",
+    subtitle:"Make an empty online home for your project before connecting.",
+    copy:"Keep it empty for now — don't tick README or .gitignore if you already have local files, or you'll get conflicts.",
+    rows:["Click + → New repository on GitHub","Name it myproject and set it to Public","Leave “Add a README” unchecked for now","Click Create repository, then copy the HTTPS URL"] },
+
+  { kind:"divider", tint:"b", icon:"download", part:"Part 03", title:"Install & Configure Git",
+    subtitle:"Get Git running, then sign in the easy way with gh." },
+
+  { kind:"bullets", tint:"b", icon:"download", part:"Part 03 · Install & configure", title:"Install Git",
+    subtitle:"One quick install, then you're ready.",
+    rows:["Windows — download from git-scm.com and run the installer","macOS — install with: brew install git (or Xcode Command Line Tools)","Linux — install with: sudo apt install git","Verify it worked with: git --version"] },
+
+  { kind:"code", tint:"b", icon:"sliders", part:"Part 03 · Install & configure", title:"Tell Git who you are",
+    subtitle:"Git attaches this name and email to every commit you make.",
+    copy:"You only need to do this once per computer.",
+    code:"git config --global user.name \"Your Name\"\ngit config --global user.email \"you@example.com\"\n\n# Check it worked\ngit config --global --list" },
+
+  { kind:"quote", tint:"b", icon:"lock", part:"Part 03 · GitHub CLI", title:"Why GitHub CLI, not SSH keys?",
+    subtitle:"SSH works, but it asks beginners to juggle key files and settings.",
+    rows:["No key files to generate, copy, or paste anywhere","No tokens to create, store, or lose","One browser login sets up Git for you","Same login fixes push, pull, and clone at once"],
+    quote:"<strong>gh auth login</strong> signs you in through the browser — and plain git just works after that." },
+
+  { kind:"code", tint:"b", icon:"download", part:"Part 03 · GitHub CLI", title:"Install GitHub CLI (gh)",
+    subtitle:"GitHub's official tool — it signs you in for you.",
+    copy:"This is the beginner-friendly way. No SSH keys, no pasting tokens — just a browser click.",
+    code:"# Windows (PowerShell):\nwinget install --id GitHub.cli\n\n# macOS:\nbrew install gh\n\n# Or download from cli.github.com\n\n# Check it worked:\ngh --version" },
+
+  { kind:"code", tint:"b", icon:"cloud", part:"Part 03 · GitHub CLI", title:"Sign in with one command",
+    subtitle:"gh auth login connects Git to GitHub for you.",
+    copy:"Answer: GitHub.com → HTTPS → Yes to authenticate Git → Login with a web browser. Copy the one-time code, paste it in the browser, click Authorize.",
+    code:"gh auth login\n\n# Answer the prompts:\n# GitHub.com -> HTTPS -> Yes -> Browser login\n\n# Check it worked:\ngh auth status\n# Expect: Logged in to github.com as <your-username>" },
+
+  { kind:"divider", tint:"b", icon:"folder", part:"Part 04", title:"Your First Repository",
+    subtitle:"Turning a normal folder into a Git project." },
+
+  { kind:"code", tint:"b", icon:"terminal", part:"Part 04 · First repository", title:"Start tracking a project",
+    subtitle:"git init turns a folder into a Git repository.",
+    copy:"git status is the command you'll run constantly — it tells you what's changed.",
+    code:"mkdir myproject\ncd myproject\ngit init\n\n# See what's changed\ngit status" },
+
+  { kind:"code", tint:"b", icon:"box", part:"Part 04 · First repository", title:"Save your first change",
+    subtitle:"add stages a file, commit saves a snapshot of it.",
+    copy:"A commit message should say what changed, in a few words.",
+    code:"git add hello.py\n# or stage everything:\ngit add .\n\ngit commit -m \"Add hello.py\"" },
+
+  { kind:"code", tint:"b", icon:"history", part:"Part 04 · First repository", title:"See your history",
+    subtitle:"Every commit you make is saved here, forever.",
+    code:"git log\n\n# A shorter view:\ngit log --oneline" },
+
+  { kind:"code", tint:"b", icon:"list", part:"Part 04 · First repository", title:"Ignore files you don't need",
+    subtitle:"A .gitignore file tells Git which files to skip.",
+    copy:"Create it before your first commit. Always ignore .venv/, __pycache__/, and .env secrets.",
+    code:"# Create a .gitignore file\ntouch .gitignore\n\n# Example content:\n.venv/\n__pycache__/\n.env\n\n# Then save it like any file\ngit add .gitignore\ngit commit -m \"Add .gitignore\"" },
+
+  { kind:"divider", tint:"b", icon:"cloud", part:"Part 05", title:"Connect to GitHub",
+    subtitle:"Link your local repo to GitHub — gh already signed you in." },
+
+  { kind:"code", tint:"b", icon:"link", part:"Part 05 · Connect to GitHub", title:"Link your repository",
+    subtitle:"Copy the HTTPS URL from your empty GitHub repo, then connect it here.",
+    copy:"Use the HTTPS URL — it starts with https://github.com. gh already handled the login, so no password prompt.",
+    code:"git remote add origin https://github.com/username/myproject.git\n\n# Check it's connected\ngit remote -v" },
+
+  { kind:"code", tint:"b", icon:"upload", part:"Part 05 · Connect to GitHub", title:"Push your code",
+    subtitle:"This sends your commits up to GitHub.",
+    copy:"The -u flag links local main to origin main, so next time a plain git push is enough.",
+    code:"git push -u origin main\n\n# Next time, just:\ngit push" },
+
+  { kind:"code", tint:"b", icon:"download", part:"Part 05 · Connect to GitHub", title:"Clone a project down",
+    subtitle:"Copy any GitHub repo to your computer in one command.",
+    copy:"Use clone when the project starts on GitHub — class examples, teamwork, or a new laptop. Login already works via gh.",
+    code:"git clone https://github.com/username/myproject.git\n\ncd myproject\n# Now you have the full project + its history" },
+
+  { kind:"code", tint:"b", icon:"repeat", part:"Part 05 · Connect to GitHub", title:"Pull the latest changes",
+    subtitle:"Download new commits from GitHub into your folder.",
+    copy:"Always pull before you start working — especially on shared projects — so you never edit old code.",
+    code:"# Get latest changes from GitHub\ngit pull\n\n# Same as:\ngit pull origin main" },
+
+  { kind:"bullets", tint:"b", icon:"alert", part:"Part 05 · Connect to GitHub", title:"Common errors",
+    subtitle:"Nearly everyone hits one of these — don't panic.",
+    rows:["Authentication failed — run gh auth login again, then gh auth status","fatal: not a git repository — you forgot git init, or you're in the wrong folder","src refspec main does not match any — you haven't made a commit yet","Merge conflict — open the file, fix markers, then add + commit"] },
+
+  { kind:"code", tint:"b", icon:"git-branch", part:"Part 06 · Branches", title:"Create and switch branches",
+    subtitle:"A branch is a safe copy of your code to try things.",
+    copy:"main always stays working. New work happens on a branch, then merges back.",
+    code:"# See all branches\ngit branch\n\n# Create + switch in one step\ngit switch -c feature-login\n\n# Switch back\ngit switch main\n\n# Older Git:\ngit checkout -b feature-login" },
+
+  { kind:"code", tint:"b", icon:"repeat", part:"Part 06 · Branches", title:"Merge your branch back",
+    subtitle:"When the feature works, bring it into main.",
+    copy:"Switch to main first, then merge. Push, then delete the finished branch.",
+    code:"git switch main\ngit merge feature-login\n\n# Send merged work to GitHub\ngit push\n\n# Clean up finished branch\ngit branch -d feature-login" },
+
+  { kind:"code", tint:"b", icon:"alert", part:"Part 06 · Branches", title:"When Git can't merge cleanly",
+    subtitle:"Same lines edited in two places — Git stops and asks you.",
+    copy:"This is normal, not broken. Open the file, keep the correct lines, delete the markers, then commit.",
+    code:"<<<<<<< HEAD\nhello from main\n=======\nhello from feature\n>>>>>>> feature-login\n\n# 1. Edit file, keep what you want, delete <<< === >>>\n# 2. Then:\ngit add hello.py\ngit commit -m \"Resolve merge conflict\"" },
+
+  { kind:"bullets", tint:"b", icon:"check", part:"Part 06 · Branches", title:"Conflicts — good vs bad",
+    subtitle:"Small habits keep conflicts tiny and easy.",
+    copy:"Rule of thumb: small branches, pull often, never force-push main.",
+    rows:["✅ GOOD — pull main and commit often, so conflicts stay tiny","✅ GOOD — one branch = one small feature, merge it back quickly","❌ BAD — everyone editing directly on main at the same time","❌ BAD — deleting markers blindly, or force-pushing to “fix” it"] },
+
+  { kind:"divider", tint:"a", icon:"star", part:"Part 07", title:"Practice & Recap",
+    subtitle:"Do it once yourself, then lock in the key ideas." },
+
+  { kind:"practice", tint:"a", icon:"pen", part:"Part 07 · Practice", title:"Your Git + GitHub challenge",
+    subtitle:"20–25 minutes",
+    task:"Create a GitHub account and an empty repo called day02-practice. Install Git and gh, then run gh auth login. Locally: git init a folder, add a .gitignore, create notes.md, add and commit. Make a branch feature-note, edit notes.md, merge it into main. Connect with git remote add origin (HTTPS URL), and push. Bonus: clone it to a second folder and try git pull.",
+    code:"day02-practice/\n├── .git/\n├── .gitignore\n└── notes.md\n\n# Try:\ngit switch -c feature-note\ngit merge feature-note" },
+
+  { kind:"cheatsheet", tint:"a", icon:"list", part:"Part 07 · Recap", title:"Command cheat sheet",
+    subtitle:"Everything from today, in one place.",
+    entries:[
+      {cmd:"git init", desc:"Turn a folder into a Git repository"},
+      {cmd:"git status", desc:"See what's changed"},
+      {cmd:"git add .", desc:"Stage all changed files"},
+      {cmd:"git commit -m \"msg\"", desc:"Save a snapshot"},
+      {cmd:"git switch -c <name>", desc:"Create and switch to a branch"},
+      {cmd:"git merge <branch>", desc:"Merge a branch into current one"},
+      {cmd:"git clone <https-url>", desc:"Copy a GitHub repo to your computer"},
+      {cmd:"git pull", desc:"Download latest changes from GitHub"},
+      {cmd:"gh auth login", desc:"Sign in to GitHub in the browser"},
+      {cmd:"gh auth status", desc:"Check who you're signed in as"},
+      {cmd:"git push -u origin main", desc:"Send commits to GitHub"},
+      {cmd:"fix markers → add → commit", desc:"Resolve a merge conflict"} ] },
+
+  { kind:"remember", tint:"a", icon:"star", part:"Part 07 · Recap", title:"Five things to remember",
+    subtitle:"If these are clear, Day 02 did its job.",
+    items:["Git saves snapshots of your project so you never lose work — .gitignore skips junk files.",
+      "add stages changes, commit saves them, log shows the history.",
+      "GitHub is the website home for your code — sign up and create the repo there first.",
+      "gh auth login signs you in via the browser — no SSH keys or tokens to paste.",
+      "Branches keep main safe. Pull often, commit small, fix conflicts by editing markers."] },
+
+  { kind:"closing", tint:"a", icon:"message", part:"Day 02 — Complete", title:"Questions?",
+    subtitle:"Great work today — see you in the next class!" }
+];
+
+const icon = name => `<svg class="icon" aria-hidden="true"><use href="#${name}"></use></svg>`;
+const escapeHtml = value => value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function highlight(code){
+  let html = escapeHtml(code);
+  html = html.replace(/(#[^\n]*)/g, '<span class="cm">$1</span>');
+  html = html.replace(/(\$[^\n]*)/g, '<span class="cm">$1</span>');
+  html = html.replace(/("[^"\n]*"|'[^'\n]*')/g, '<span class="str">$1</span>');
+  html = html.replace(/(^|[^\w])(if|elif|else|for|while|in|break|continue|and|or|not|def|return|print|import|from|as)(?=\b)/gm, '$1<span class="kw">$2</span>');
+  html = html.replace(/\b([a-zA-Z_]\w*)(?=\()/g, '<span class="fn">$1</span>');
+  return html;
+}
+const codeBlock = code => `<div class="code-panel"><div class="code-label">${icon("code")} Git / Terminal</div><pre><code>${highlight(String(code ?? ""))}</code></pre></div>`;
+const pageNo = index => `<span class="slide-number">${String(index+1).padStart(2,"0")} / ${String(slides.length).padStart(2,"0")}</span>`;
+const kicker = slide => `<div class="kicker"><span class="tag">${icon(slide.icon)}${slide.eyebrow || "Git & SSH"}</span>${slide.part ? `<span class="part">${slide.part}</span>` : ""}</div>`;
+const rowsList = (items, compact) => `<ul class="rows${compact ? " compact" : ""}">${items.map((t,i)=>`<li><span class="n">${String(i+1).padStart(2,"0")}</span><span class="t">${t}</span></li>`).join("")}</ul>`;
+
+function renderFlow(steps){
+  return `<div class="flow-wrap"><div class="flow-connector"></div><div class="flow">${steps.map(s=>`<div class="flow-step"><div class="ic">${icon(s.icon)}</div><strong>${s.label}</strong><small>${s.text}</small></div>`).join("")}</div></div>`;
+}
+
+function renderSlide(slide, index){
+  const tintClass = slide.tint === "b" ? "b" : "";
+  let body;
+  if (slide.kind === "hero"){
+    body = `<div class="hero-body"><div class="mark">${icon(slide.icon)}</div><p class="p-label">${slide.eyebrow}</p><h1>${slide.title}</h1><p class="subtitle">${slide.subtitle}</p></div>${pageNo(index)}`;
+    return `<article class="slide" data-index="${index}" aria-hidden="${index===0?"false":"true"}"><div class="frame ${tintClass} on-dark"><div class="rule"></div><div style="height:calc(100% - 3px)">${body}</div></div></article>`;
+  }
+  if (slide.kind === "closing"){
+    body = `<div class="closing-body"><div class="mark">${icon(slide.icon)}</div><p class="p-label">${slide.part}</p><h1>${slide.title}</h1><p class="subtitle">${slide.subtitle}</p></div>${pageNo(index)}`;
+    return `<article class="slide" data-index="${index}" aria-hidden="true"><div class="frame ${tintClass} on-dark"><div class="rule"></div><div style="height:calc(100% - 3px)">${body}</div></div></article>`;
+  }
+  if (slide.kind === "divider"){
+    body = `<div class="divider-body"><span class="num">${slide.part.replace(/\D/g,"").padStart(2,"0")}</span><p class="p-label">${slide.part}</p><h1>${slide.title}</h1><p class="subtitle">${slide.subtitle}</p></div>${pageNo(index)}`;
+    return `<article class="slide" data-index="${index}" aria-hidden="true"><div class="frame ${tintClass} on-dark"><div class="rule"></div><div style="height:calc(100% - 3px)">${body}</div></div></article>`;
+  }
+
+  if (slide.kind === "bullets"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><div class="split">
+      <div><p class="subtitle">${slide.subtitle}</p>${slide.copy ? `<p class="copy">${slide.copy}</p>` : ""}</div>
+      <div>${rowsList(slide.rows)}</div>
+    </div>${pageNo(index)}</div>`;
+  } else if (slide.kind === "flow"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><p class="subtitle" style="margin-bottom:8px">${slide.subtitle}</p>${renderFlow(slide.steps)}${pageNo(index)}</div>`;
+  } else if (slide.kind === "quote"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><div class="split wide-left">
+      <div><p class="subtitle">${slide.subtitle}</p>${rowsList(slide.rows, true)}</div>
+      <div class="quote"><p>${slide.quote}</p></div>
+    </div>${pageNo(index)}</div>`;
+  } else if (slide.kind === "code"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><div class="split">
+      <div><p class="subtitle">${slide.subtitle}</p>${slide.copy ? `<p class="copy">${slide.copy}</p>` : ""}</div>
+      ${codeBlock(slide.code)}
+    </div>${pageNo(index)}</div>`;
+  } else if (slide.kind === "practice"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><div class="split">
+      <div class="practice-box"><h3>${slide.subtitle}</h3><p>${slide.task}</p></div>
+      ${codeBlock(slide.code)}
+    </div>${pageNo(index)}</div>`;
+  } else if (slide.kind === "cheatsheet"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><p class="subtitle" style="margin-bottom:10px">${slide.subtitle}</p>
+      <div class="cheatgrid">${slide.entries.map(e=>`<div class="cheatcard"><code>${escapeHtml(e.cmd)}</code><small>${e.desc}</small></div>`).join("")}</div>
+    ${pageNo(index)}</div>`;
+  } else if (slide.kind === "remember"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><p class="subtitle" style="margin-bottom:10px">${slide.subtitle}</p>
+      <div class="remember">${slide.items.map((t,i)=>`<div class="remember-item"><span class="n">${i+1}</span><p>${t}</p></div>`).join("")}</div>
+    ${pageNo(index)}</div>`;
+  }
+  return `<article class="slide" data-index="${index}" aria-hidden="${index===0?"false":"true"}"><div class="frame ${tintClass}"><div class="rule"></div>${body}</div></article>`;
+}
+
+const slidesRoot = document.getElementById("slides");
+slidesRoot.innerHTML = slides.map(renderSlide).join("");
+const pages = [...document.querySelectorAll(".slide")];
+const counter = document.getElementById("counter");
+const progress = document.getElementById("progress");
+const previousButton = document.getElementById("previousButton");
+const nextButton = document.getElementById("nextButton");
+let current = 0, startX = 0, startY = 0;
+
+function goTo(index, direction = 1, updateHash = true){
+  const target = Math.max(0, Math.min(slides.length - 1, index));
+  if (target === current && index !== 0) return;
+  pages.forEach((page, pageIndex) => {
+    page.classList.toggle("active", pageIndex === target);
+    page.classList.toggle("past", pageIndex < target && direction > 0);
+    page.setAttribute("aria-hidden", String(pageIndex !== target));
+  });
+  current = target;
+  counter.textContent = `${String(current+1).padStart(2,"0")} / ${String(slides.length).padStart(2,"0")}`;
+  progress.style.width = `${((current+1)/slides.length)*100}%`;
+  previousButton.disabled = current === 0;
+  nextButton.disabled = current === slides.length - 1;
+  if (updateHash) history.replaceState(null, "", `#slide-${current+1}`);
+}
+function next(){ goTo(current+1, 1); }
+function previous(){ goTo(current-1, -1); }
+
+document.getElementById("homeButton").addEventListener("click", () => goTo(0, -1));
+previousButton.addEventListener("click", previous);
+nextButton.addEventListener("click", next);
+document.getElementById("fullButton").addEventListener("click", async () => {
+  if (document.fullscreenElement) await document.exitFullscreen();
+  else await document.documentElement.requestFullscreen();
+});
+document.addEventListener("keydown", event => {
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+  if (["ArrowRight","ArrowDown","PageDown"," ","Enter"].includes(event.key)) { event.preventDefault(); next(); }
+  if (["ArrowLeft","ArrowUp","PageUp","Backspace"].includes(event.key)) { event.preventDefault(); previous(); }
+  if (event.key === "Home") { event.preventDefault(); goTo(0, -1); }
+  if (event.key === "End") { event.preventDefault(); goTo(slides.length-1, 1); }
+});
+slidesRoot.addEventListener("touchstart", event => { const t = event.changedTouches[0]; startX = t.clientX; startY = t.clientY; }, {passive:true});
+slidesRoot.addEventListener("touchend", event => { const t = event.changedTouches[0]; const x = t.clientX-startX, y = t.clientY-startY; if (Math.abs(x) > 48 && Math.abs(x) > Math.abs(y)) x < 0 ? next() : previous(); }, {passive:true});
+
+const requested = Number((location.hash.match(/slide-(\d+)/) || [])[1]);
+goTo(Number.isFinite(requested) && requested > 0 ? requested-1 : 0, 1, false);
+</script>
+</body>
+</html>
