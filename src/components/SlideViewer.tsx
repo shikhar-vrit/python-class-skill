@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   ChevronLeft,
   ChevronRight,
+  Download,
   ExternalLink,
   Loader2,
   Maximize,
@@ -19,12 +20,14 @@ function ToolButton({
   title,
   onClick,
   href,
+  download,
   children,
   disabled,
 }: {
   title: string;
   onClick?: () => void;
   href?: string;
+  download?: boolean;
   children: React.ReactNode;
   disabled?: boolean;
 }) {
@@ -32,7 +35,15 @@ function ToolButton({
     "flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900 disabled:pointer-events-none disabled:opacity-35";
   if (href) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" title={title} aria-label={title} className={cls}>
+      <a
+        href={href}
+        target={download ? undefined : "_blank"}
+        rel="noreferrer"
+        download={download || undefined}
+        title={title}
+        aria-label={title}
+        className={cls}
+      >
         {children}
       </a>
     );
@@ -136,6 +147,9 @@ export function SlideViewer({ day }: { day: DayMeta }) {
         <div className="hidden items-center gap-1.5 sm:flex">
           <ToolButton title="Reload slides" onClick={() => setReloadKey((k) => k + 1)}>
             <RotateCcw size={16} strokeWidth={1.8} />
+          </ToolButton>
+          <ToolButton title="Download deck (HTML file)" href={day.file} download>
+            <Download size={16} strokeWidth={1.8} />
           </ToolButton>
           <ToolButton title="Open standalone deck in new tab" href={day.file}>
             <ExternalLink size={16} strokeWidth={1.8} />
