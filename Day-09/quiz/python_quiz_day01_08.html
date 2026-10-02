@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Python Quiz — Day 01 to 08</title>
+<style>
+  :root{
+    --bg:#f6f2ea; --paper:#fffdf8; --ink:#221f1a; --muted:#726b5e; --line:#e6ddc9; --soft-ink:#3c362d;
+    --a:#b1502e; --a-soft:#f3ded0;
+    --b:#2f5d52; --b-soft:#dfe9e2;
+    --dark:#201d19; --dark-ink:#f4efe4;
+    --code-bg:#1c1815; --code-fg:#efe8db; --code-kw:#8fd6c4; --code-str:#e9b483; --code-cm:#8a8277; --code-fn:#e7cd8f;
+    --shadow:0 18px 44px rgba(24,17,8,.14), 0 3px 10px rgba(24,17,8,.07);
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#181512; --paper:#231f1b; --ink:#f1ebdf; --muted:#a59d8e; --line:#3a342d; --soft-ink:#d9d1c3;
+      --a:#e3825c; --a-soft:#3b281f; --b:#73b8a5; --b-soft:#1d302a;
+      --shadow:0 18px 44px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100dvh;}
+  button{font:inherit;color:inherit;}
+  code{font-family:var(--mono);font-size:.92em;color:var(--a);}
+
+  .wrap{width:min(1080px,100%);margin:0 auto;padding:22px 16px 60px;}
+  header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
+  .mark{width:40px;height:40px;display:grid;place-items:center;border:1.5px solid var(--a);color:var(--a);border-radius:8px;font-family:var(--serif);font-weight:700;}
+  header.top h1{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(24px,3.4vw,34px);line-height:1.05;}
+  header.top p{margin:3px 0 0;color:var(--muted);font-family:var(--serif);font-style:italic;font-size:15px;}
+
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;margin-bottom:18px;}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .row .label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px;min-width:42px;}
+  .chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--soft-ink);}
+  .chip small{color:var(--muted);font-weight:500;margin-left:4px;}
+  .chip[aria-pressed="true"]{background:var(--a);border-color:var(--a);color:var(--paper);}
+  .chip[aria-pressed="true"] small{color:rgba(255,255,255,.8);}
+  .spacer{flex:1;}
+  .btn{border:1px solid var(--line);background:var(--paper);border-radius:7px;padding:8px 13px;font-size:13.5px;font-weight:600;cursor:pointer;}
+  .btn:hover,.chip:hover{border-color:var(--a);}
+  .btn.primary{background:var(--b);border-color:var(--b);color:var(--paper);}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .tabs{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .tabs button{border:0;background:transparent;padding:8px 14px;font-size:13.5px;font-weight:700;cursor:pointer;color:var(--muted);}
+  .tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper);}
+  .toggle{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--soft-ink);cursor:pointer;}
+  .toggle input{width:16px;height:16px;accent-color:var(--b);}
+
+  /* class mode */
+  .card{background:var(--paper);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;}
+  .card .rule{height:4px;background:var(--a);}
+  .card-body{padding:clamp(20px,3.6vw,40px);}
+  .card-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .tag{display:inline-flex;padding:5px 11px;border:1px solid var(--a);color:var(--a);border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+  .qcount{color:var(--muted);font-size:12.5px;font-weight:700;letter-spacing:.06em;}
+  .question{margin:0 0 16px;font-family:var(--serif);font-weight:600;font-size:clamp(21px,2.9vw,32px);line-height:1.2;}
+  pre.code{margin:0 0 18px;padding:16px 20px;background:var(--code-bg);color:var(--code-fg);border-radius:7px;font-family:var(--mono);font-size:clamp(14px,1.7vw,19px);line-height:1.55;overflow-x:auto;white-space:pre;}
+  pre.code code{color:inherit;font-size:inherit;}
+  .kw{color:var(--code-kw);} .fn{color:var(--code-fn);} .str{color:var(--code-str);} .cm{color:var(--code-cm);font-style:italic;}
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .opt{display:flex;gap:12px;align-items:center;text-align:left;border:1.5px solid var(--line);background:var(--paper);border-radius:8px;padding:13px 15px;cursor:pointer;font-size:clamp(15px,1.7vw,18px);line-height:1.35;min-height:58px;}
+  .opt:hover:not(:disabled){border-color:var(--a);}
+  .opt:disabled{cursor:default;}
+  .opt .letter{flex-shrink:0;width:30px;height:30px;display:grid;place-items:center;border-radius:6px;background:var(--bg);font-weight:800;font-size:14px;color:var(--muted);}
+  .opt.correct{border-color:var(--b);background:var(--b-soft);}
+  .opt.correct .letter{background:var(--b);color:var(--paper);}
+  .opt.wrong{border-color:var(--a);background:var(--a-soft);}
+  .opt.wrong .letter{background:var(--a);color:var(--paper);}
+  .opt.dim{opacity:.55;}
+  .explain{margin-top:16px;border-left:3px solid var(--b);background:var(--b-soft);padding:14px 18px;border-radius:0 7px 7px 0;font-size:clamp(15px,1.6vw,17px);line-height:1.5;}
+  .explain strong{color:var(--b);}
+  .nav{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap;}
+  .score{font-size:13.5px;font-weight:700;color:var(--muted);}
+  .score b{color:var(--b);}
+  .progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:14px;}
+  .progress span{display:block;height:100%;background:var(--a);width:0;transition:width .25s ease;}
+  .hint{margin-top:12px;color:var(--muted);font-size:12px;text-align:center;}
+  .summary{text-align:center;padding:clamp(30px,6vw,60px) 20px;}
+  .summary .big{font-family:var(--serif);font-size:clamp(54px,9vw,96px);font-weight:600;color:var(--b);line-height:1;}
+  .summary h2{font-family:var(--serif);font-weight:600;font-size:clamp(22px,3vw,30px);margin:14px 0 6px;}
+  .summary p{color:var(--muted);margin:0 0 22px;}
+  .summary .row{justify-content:center;}
+
+  /* answer sheet */
+  .sheet{display:flex;flex-direction:column;gap:12px;}
+  .sq{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:16px 18px;break-inside:avoid;}
+  .sq-head{display:flex;gap:10px;align-items:baseline;margin-bottom:8px;}
+  .sq-num{font-family:var(--serif);font-weight:700;color:var(--a);font-size:17px;flex-shrink:0;}
+  .sq-q{font-family:var(--serif);font-weight:600;font-size:17px;line-height:1.3;flex:1;}
+  .sq-day{flex-shrink:0;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .sq pre.code{font-size:13.5px;padding:11px 14px;margin:0 0 10px;}
+  .sq ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;}
+  .sq li{font-size:14.5px;padding:3px 0;color:var(--soft-ink);}
+  .sq li b{display:inline-block;width:22px;color:var(--muted);}
+  .show-answers .sq li.is-answer{color:var(--b);font-weight:700;}
+  .show-answers .sq li.is-answer b{color:var(--b);}
+  .sq .sq-ex{display:none;margin-top:8px;font-size:13.5px;color:var(--muted);line-height:1.45;}
+  .show-answers .sq .sq-ex{display:block;}
+  .key{display:none;}
+  .show-answers .key{display:block;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:14px 18px;margin-top:6px;}
+  .key h3{margin:0 0 8px;font-family:var(--serif);font-size:18px;}
+  .key p{margin:0;font-family:var(--mono);font-size:13.5px;line-height:1.8;color:var(--soft-ink);}
+
+  @media (max-width:700px){
+    .options,.sq ol{grid-template-columns:1fr;}
+    .spacer{display:none;}
+  }
+  @media print{
+    body{background:#fff;color:#000;}
+    .panel,.no-print{display:none!important;}
+    .wrap{padding:0;}
+    .sq{border-color:#ccc;}
+    pre.code{background:#f3f0ea;color:#111;border:1px solid #ddd;}
+    .kw,.fn,.str,.cm{color:#111;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="mark">Py</span>
+    <div>
+      <h1>Python Quiz: Day 01 to Day 08</h1>
+      <p>Pick the days, then quiz the class one question at a time, or print a worksheet.</p>
+    </div>
+  </header>
+
+  <section class="panel" aria-label="Quiz settings">
+    <div class="row" id="dayChips"><span class="label">Days</span></div>
+    <div class="row">
+      <span class="label">Mode</span>
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tabClass" aria-selected="true">Class mode</button>
+        <button role="tab" id="tabSheet" aria-selected="false">Answer sheet</button>
+      </div>
+      <span class="spacer"></span>
+      <button class="btn" id="btnAll" title="All chosen questions, in order">All in order</button>
+      <button class="btn" id="btnShuffle" title="Mix up the order">Shuffle</button>
+      <button class="btn primary" id="btnRandom" title="10 random questions from the chosen days">Random 10</button>
+    </div>
+  </section>
+
+  <main id="classView"></main>
+  <main id="sheetView" hidden></main>
+</div>
+
+<script>
+/* Every question lists the correct option first. The page mixes the options when it shows them. */
+const DAYS = {
+  1:"Python intro & venv", 2:"Git & GitHub", 3:"Numbers & strings", 4:"Lists",
+  5:"Tuples & sets", 6:"Dictionaries", 7:"if / else", 8:"Loops"
+};
+
+const QUESTIONS = [
+  /* ───── Day 01 ───── */
+  {d:1, q:"What is a programming language?", o:["A way to give a computer clear instructions","A program that only plays music","A type of computer screen","A website for saving photos"], e:"We write instructions in a language like Python, and the computer follows them exactly."},
+  {d:1, q:"Python code is run by an ___.", o:["Interpreter","Antivirus","Printer","Web browser"], e:"The Python interpreter reads your code and runs it. You don't need to make an .exe first."},
+  {d:1, q:"Which command checks that Python is installed?", o:["`python --version`","`python install`","`pip --check`","`run python`"], e:"It prints something like Python 3.12.4. On some Macs you type `python3 --version`."},
+  {d:1, q:"What does this print?", code:'print("Hello, World!")', o:["Hello, World!","\"Hello, World!\" (with quotes)","print Hello, World!","Nothing"], e:"print() shows the text without the quote marks."},
+  {d:1, q:"What does REPL stand for?", o:["Read, Evaluate, Print, Loop","Run, Edit, Print, Leave","Read, Edit, Paste, Load","Repeat, Enter, Print, Loop"], e:"It's Python's interactive mode, the one with the >>> prompt."},
+  {d:1, q:"What happens when you run this?", code:'Print("Hi")', o:["NameError: Python is case sensitive","It prints Hi","It prints Print Hi","Nothing happens"], e:"`Print` with a capital P is not `print`, so Python doesn't know that name."},
+  {d:1, q:"What is wrong with this line?", code:'print("Hello"', o:["The closing bracket ) is missing","print must be in capitals","Text can't use double quotes","Nothing is wrong"], e:"Python shows a SyntaxError. Every ( needs a matching )."},
+  {d:1, q:"Why do we use a virtual environment?", o:["Each project gets its own private Python and packages","It makes the computer faster","You need it to type print()","It backs up your code to GitHub"], e:"Project A can use one version of a package and project B another, with no clash."},
+  {d:1, q:"Which command creates a virtual environment called .venv?", o:["`python -m venv .venv`","`pip install .venv`","`python create .venv`","`git init .venv`"], e:"venv comes with Python, so nothing extra needs installing."},
+  {d:1, q:"On macOS or Linux, how do you activate .venv?", o:["`source .venv/bin/activate`","`python .venv`","`pip activate`","`open .venv`"], e:"After activating, you see (.venv) at the start of the terminal line."},
+  {d:1, q:"Which command installs a package called requests?", o:["`pip install requests`","`python requests`","`install requests`","`git add requests`"], e:"pip is Python's package installer. Activate your venv first!"},
+  {d:1, q:"How do you leave a virtual environment?", o:["`deactivate`","`exit venv`","`pip leave`","Delete the .venv folder"], e:"deactivate leaves it. The folder stays, so you can activate it again later."},
+
+  /* ───── Day 02 ───── */
+  {d:2, q:"What is Git?", o:["A tool that saves the history of your code","A website for videos","A Python package","A text editor"], e:"Git takes snapshots (commits) of your project over time."},
+  {d:2, q:"What is the difference between Git and GitHub?", o:["Git runs on your computer. GitHub is a website that stores repos online","They are exactly the same thing","GitHub runs on your computer. Git is a website","Git only works on Windows"], e:"You use Git locally, then push your commits up to GitHub."},
+  {d:2, q:"What does `git init` do?", o:["Turns a folder into a Git repository","Uploads code to GitHub","Deletes old commits","Installs Git"], e:"It creates a hidden .git folder where Git keeps all the history."},
+  {d:2, q:"Which command stages a file so it is ready to commit?", o:["`git add hello.py`","`git commit hello.py`","`git push hello.py`","`git save hello.py`"], e:"The order is: change the file, then git add, then git commit."},
+  {d:2, q:"In `git commit -m \"Add login page\"`, what is -m for?", o:["It adds a message that says what changed","It merges two branches","It moves the file","It makes a new branch"], e:"Every commit needs a short message, so you know later what changed."},
+  {d:2, q:"Which command shows the history of commits?", o:["`git log`","`git history`","`git show-all`","`git remote -v`"], e:"`git log --oneline` shows a shorter view."},
+  {d:2, q:"What does `git status` show?", o:["Which files are changed, staged or not tracked","Your GitHub password","Your internet speed","Every repo on GitHub"], e:"Run it often. It tells you what Git sees right now."},
+  {d:2, q:"What is a .gitignore file for?", o:["It lists files Git should skip, like .venv/","It deletes files","It hides files from your computer","It stores your password"], e:"Files and folders listed in .gitignore never get committed."},
+  {d:2, q:"Which command sends your commits up to GitHub?", o:["`git push`","`git pull`","`git clone`","`git init`"], e:"push sends up. pull brings new commits down."},
+  {d:2, q:"Which command copies a whole GitHub project to your computer for the first time?", o:["`git clone <url>`","`git pull`","`git push`","`git add .`"], e:"clone downloads the whole repo with all its history."},
+  {d:2, q:"Which command creates a new branch and switches to it?", o:["`git switch -c feature`","`git merge feature`","`git push feature`","`git log feature`"], e:"A branch is a safe copy to try things. Merge it back into main when it works."},
+  {d:2, q:"When does a merge conflict happen?", o:["When the same lines were changed in two branches","When you commit too often","When the internet is slow","When a file name has a space"], e:"Git can't decide which version to keep, so it stops and asks you."},
+  {d:2, q:"Which command signs you in to GitHub from the terminal?", o:["`gh auth login`","`git login`","`github start`","`pip login`"], e:"gh is the GitHub CLI. It connects Git to your GitHub account for you."},
+
+  /* ───── Day 03 ───── */
+  {d:3, q:"What does this print?", code:"print(type(3.5))", o:["<class 'float'>","<class 'int'>","<class 'str'>","<class 'decimal'>"], e:"A number with a decimal point is a float."},
+  {d:3, q:"What does this print?", code:"print(7 // 2)", o:["3","3.5","1","4"], e:"// is floor division. It keeps only the whole number part."},
+  {d:3, q:"What does this print?", code:"print(7 % 2)", o:["1","3","3.5","0"], e:"% gives the remainder. 7 ÷ 2 = 3, remainder 1."},
+  {d:3, q:"What does this print?", code:"print(2 ** 3)", o:["8","6","5","9"], e:"** means power: 2 × 2 × 2 = 8."},
+  {d:3, q:"The user types 20. What does this print?", code:'age = input("Age: ")\nprint(type(age))', o:["<class 'str'>","<class 'int'>","<class 'float'>","20"], e:"input() always gives text. Use int(input()) to get a number."},
+  {d:3, q:"What does this print?", code:'print("5" + "5")', o:["55","10","5 5","Error"], e:"Adding two strings joins them together."},
+  {d:3, q:"What does this print?", code:'name = "Ram"\nprint(f"Hi {name}")', o:["Hi Ram","Hi {name}","Hi name","Error"], e:"In an f-string, Python puts the value of the variable inside { }."},
+  {d:3, q:"What does this print?", code:'word = "Python"\nprint(word[0], word[-1])', o:["P n","P o","y n","Python"], e:"Index 0 is the first letter. Index -1 is the last letter."},
+  {d:3, q:"What does this print?", code:'word = "Python"\nprint(word[0:3])', o:["Pyt","Pyth","yth","Py"], e:"The stop (3) is not included, so you get positions 0, 1 and 2."},
+  {d:3, q:"What does this print?", code:'print("hello".upper())', o:["HELLO","Hello","hello","hELLO"], e:".upper() makes every letter a capital."},
+  {d:3, q:"What does this print?", code:"x = 10\nx += 5\nprint(x)", o:["15","105","5","10"], e:"x += 5 is short for x = x + 5."},
+  {d:3, q:"What does this print?", code:'print(10 == "10")', o:["False","True","Error","10"], e:"A number and a string are never equal, even if they look the same."},
+  {d:3, q:"In match-case, which case catches everything else (the default)?", o:["`case _:`","`case else:`","`default:`","`case all:`"], e:"case _ runs when no other case matched."},
+  {d:3, q:"What does this print?", code:'print(len("Nepal"))', o:["5","4","6","Nepal"], e:"len() counts the letters: N-e-p-a-l."},
+
+  /* ───── Day 04 ───── */
+  {d:4, q:"What does this print?", code:'fruits = ["apple", "mango", "banana"]\nprint(fruits[1])', o:["mango","apple","banana","Error"], e:"Counting starts at 0, so index 1 is the second item."},
+  {d:4, q:"What does this print?", code:"nums = [1, 2, 3]\nnums.append(4)\nprint(nums)", o:["[1, 2, 3, 4]","[4, 1, 2, 3]","[1, 2, 3]","[1, 2, 3, [4]]"], e:"append() adds one item at the end."},
+  {d:4, q:"What does this print?", code:"nums = [1, 2, 3]\nnums.insert(0, 9)\nprint(nums)", o:["[9, 1, 2, 3]","[1, 2, 3, 9]","[0, 9, 1, 2, 3]","[1, 9, 2, 3]"], e:"insert(position, value) puts 9 at position 0."},
+  {d:4, q:"What does this print?", code:"nums = [10, 20, 30]\nlast = nums.pop()\nprint(last, nums)", o:["30 [10, 20]","10 [20, 30]","30 [10, 20, 30]","Error"], e:"pop() removes the last item and gives it back to you."},
+  {d:4, q:"What does this print?", code:"nums = [10, 20, 30, 40, 50]\nprint(nums[1:3])", o:["[20, 30]","[20, 30, 40]","[10, 20, 30]","[30, 40]"], e:"Start at index 1, stop before index 3."},
+  {d:4, q:"What does this print?", code:'fruits = ["apple", "mango"]\nfruits[0] = "kiwi"\nprint(fruits)', o:["['kiwi', 'mango']","['apple', 'mango']","Error: a list can't change","['apple', 'kiwi']"], e:"Lists are mutable: you can change any item."},
+  {d:4, q:"What does this print?", code:'fruits = ["apple", "mango"]\nprint("mango" in fruits)', o:["True","False","1","mango"], e:"in checks if the item is inside the list."},
+  {d:4, q:"What does this print?", code:"nums = [3, 1, 2]\nnums.sort()\nprint(nums)", o:["[1, 2, 3]","[3, 2, 1]","[3, 1, 2]","None"], e:".sort() puts the list in order, small to big."},
+  {d:4, q:"What does this print?", code:"print(len([5, 10, 15, 20]))", o:["4","20","50","3"], e:"len() counts how many items are in the list."},
+  {d:4, q:"What does this print?", code:'text = "red,green,blue"\nprint(text.split(","))', o:["['red', 'green', 'blue']","red green blue","('red', 'green', 'blue')","['red,green,blue']"], e:"split(\",\") cuts the text at every comma and gives a list."},
+  {d:4, q:"What does this print?", code:'words = ["I", "love", "Python"]\nprint(" ".join(words))', o:["I love Python","['I', 'love', 'Python']","IlovePython","I, love, Python"], e:"join() glues the list back into one string, with a space between."},
+  {d:4, q:"What does this print?", code:"a = [1, 2]\nb = a\nb.append(3)\nprint(a)", o:["[1, 2, 3]","[1, 2]","[3]","Error"], e:"b = a doesn't make a copy. Both names point to the same list. Use a.copy()."},
+  {d:4, q:"What does this print?", code:"grid = [[1, 2], [3, 4]]\nprint(grid[1][0])", o:["3","2","1","4"], e:"grid[1] is [3, 4]. Then [0] of that is 3."},
+
+  /* ───── Day 05 ───── */
+  {d:5, q:"Which one of these is a tuple?", o:["`(1, 2, 3)`","`[1, 2, 3]`","`{1, 2, 3}`","`{\"a\": 1}`"], e:"Tuples use round brackets. Lists use [ ], sets and dictionaries use { }."},
+  {d:5, q:"What happens when you run this?", code:"t = (1, 2, 3)\nt[0] = 9", o:["TypeError: a tuple can't be changed","t becomes (9, 2, 3)","t becomes [9, 2, 3]","Nothing happens"], e:"Tuples are locked. You can read them, but never change them."},
+  {d:5, q:"What does this print?", code:"x = (5)\nprint(type(x))", o:["<class 'int'>","<class 'tuple'>","<class 'list'>","<class 'set'>"], e:"Without a comma it's just a number in brackets. Write (5,) to make a tuple."},
+  {d:5, q:"Which two methods does a tuple have?", o:["`count()` and `index()`","`append()` and `remove()`","`add()` and `pop()`","`sort()` and `reverse()`"], e:"A tuple can't change, so it only has methods that read it."},
+  {d:5, q:"What does this print?", code:'name, age = ("Ram", 20)\nprint(name)', o:["Ram","20","('Ram', 20)","Error"], e:"This is unpacking: each value goes into its own variable."},
+  {d:5, q:"What does this print?", code:"nums = {1, 2, 2, 3, 3}\nprint(nums)", o:["{1, 2, 3}","{1, 2, 2, 3, 3}","[1, 2, 3]","Error"], e:"A set keeps each item only once."},
+  {d:5, q:"What happens when you run this?", code:"s = {10, 20, 30}\nprint(s[0])", o:["TypeError: a set has no index","It prints 10","It prints 30","It prints {10}"], e:"A set has no order, so it has no positions."},
+  {d:5, q:"How do you make an empty set?", o:["`set()`","`{}`","`[]`","`()`"], e:"{} makes an empty dictionary, not a set."},
+  {d:5, q:"What does this print?", code:"a = {1, 2, 3}\nb = {2, 3, 4}\nprint(a & b)", o:["{2, 3}","{1, 2, 3, 4}","{1}","{4}"], e:"& is intersection: the items that are in both sets."},
+  {d:5, q:"What does this print?", code:"a = {1, 2, 3}\nb = {2, 3, 4}\nprint(a | b)", o:["{1, 2, 3, 4}","{2, 3}","{1, 4}","{1, 2, 2, 3, 3, 4}"], e:"| is union: everything from both, no duplicates."},
+  {d:5, q:"What does this print?", code:"a = {1, 2, 3}\nb = {2, 3, 4}\nprint(a - b)", o:["{1}","{4}","{1, 4}","{2, 3}"], e:"a - b is difference: items in a that are not in b."},
+  {d:5, q:"What does this print?", code:'names = ["Ram", "Sita", "Ram"]\nprint(len(set(names)))', o:["2","3","1","Error"], e:"set() removes the duplicate Ram, so 2 names are left."},
+  {d:5, q:"Which collection fits data that must never change, like a date of birth (2001, 5, 14)?", o:["Tuple","List","Set","Dictionary"], e:"A tuple is a locked list, so nobody can change it by mistake."},
+
+  /* ───── Day 06 ───── */
+  {d:6, q:"What does this print?", code:'student = {"name": "Ram", "age": 20}\nprint(student["name"])', o:["Ram","name","20","Error"], e:"Put the key in square brackets to get its value."},
+  {d:6, q:"What happens when you run this?", code:'student = {"name": "Ram"}\nprint(student["city"])', o:["KeyError","It prints None","It prints city","It prints an empty line"], e:"The key \"city\" doesn't exist, so Python stops with a KeyError."},
+  {d:6, q:"What does this print?", code:'student = {"name": "Ram"}\nprint(student.get("city"))', o:["None","KeyError","city","Ram"], e:"get() gives None instead of crashing when the key is missing."},
+  {d:6, q:"What does this print?", code:'student = {"name": "Ram"}\nprint(student.get("city", "Unknown"))', o:["Unknown","None","KeyError","city"], e:"The second value is the default to use when the key is missing."},
+  {d:6, q:"What does this print?", code:'student = {"name": "Ram"}\nstudent["city"] = "Pokhara"\nprint(student)', o:["{'name': 'Ram', 'city': 'Pokhara'}","{'name': 'Ram'}","KeyError","{'city': 'Pokhara'}"], e:"A new key adds a new pair. An old key changes its value."},
+  {d:6, q:"What does this print?", code:'d = {"a": 1, "a": 2}\nprint(d)', o:["{'a': 2}","{'a': 1}","{'a': 1, 'a': 2}","Error"], e:"Keys are unique. The last value wins."},
+  {d:6, q:"What does this print?", code:'prices = {"tea": 20, "momo": 150}\nprint(len(prices))', o:["2","4","170","1"], e:"len() counts the key and value pairs."},
+  {d:6, q:"Which method gives you both the key and the value together?", o:["`.items()`","`.keys()`","`.values()`","`.get()`"], e:"for item, price in prices.items(): gives both, every round."},
+  {d:6, q:"What does this print?", code:'prices = {"tea": 20, "momo": 150}\nx = prices.pop("tea")\nprint(x, prices)', o:["20 {'momo': 150}","tea {'momo': 150}","20 {'tea': 20, 'momo': 150}","Error"], e:"pop(key) removes that pair and gives you its value."},
+  {d:6, q:"Which of these can NOT be a dictionary key?", o:["A list like `[1, 2]`","A string like `\"name\"`","A number like `5`","A tuple like `(1, 2)`"], e:"Keys must never change. A list can change, so it can't be a key."},
+  {d:6, q:"What does this print?", code:'keys = ["a", "b"]\nvalues = [1, 2]\nprint(dict(zip(keys, values)))', o:["{'a': 1, 'b': 2}","[('a', 1), ('b', 2)]","{'a': 'b', 1: 2}","Error"], e:"zip() pairs them up, and dict() turns the pairs into a dictionary."},
+  {d:6, q:"What does this print?", code:'students = {"s1": {"name": "Sita", "age": 21}}\nprint(students["s1"]["name"])', o:["Sita","s1","21","{'name': 'Sita'}"], e:"First [\"s1\"] gives the inner dictionary, then [\"name\"] gives Sita."},
+  {d:6, q:"What does this print?", code:'a = {"x": 1}\nb = {"y": 2}\na.update(b)\nprint(a)', o:["{'x': 1, 'y': 2}","{'y': 2}","{'x': 1}","Error"], e:"update() adds every pair from b into a."},
+
+  /* ───── Day 07 ───── */
+  {d:7, q:"What does this print?", code:'x = 15\nif x > 10:\n    print("Big")\nelse:\n    print("Small")', o:["Big","Small","Big and Small","Nothing"], e:"15 > 10 is True, so only the if block runs."},
+  {d:7, q:"What does this print?", code:'marks = 85\nif marks >= 40:\n    print("Pass")\nelif marks >= 80:\n    print("Distinction")', o:["Pass","Distinction","Pass and Distinction","Nothing"], e:"Only the first True block runs. Put the hardest condition first."},
+  {d:7, q:"What does this print?", code:"print(True and False)", o:["False","True","Error","None"], e:"and needs both sides to be True."},
+  {d:7, q:"What does this print?", code:"print(True or False)", o:["True","False","Error","None"], e:"or needs just one side to be True."},
+  {d:7, q:"What does this print?", code:"print(not True)", o:["False","True","Error","None"], e:"not flips the answer."},
+  {d:7, q:"Which sign asks: are these two values equal?", o:["`==`","`=`","`=>`","`!`"], e:"= saves a value in a variable. == compares two values."},
+  {d:7, q:"What does this print?", code:'if "a" in "apple":\n    print("Yes")\nelse:\n    print("No")', o:["Yes","No","Error","a"], e:"in checks if the text is inside the string."},
+  {d:7, q:"What does this print?", code:'cart = []\nif cart:\n    print("Has items")\nelse:\n    print("Empty")', o:["Empty","Has items","Error","[]"], e:"An empty list counts as False."},
+  {d:7, q:"What is wrong with this code?", code:'x = 7\nif x > 5\n    print("Big")', o:["The colon : is missing after the condition","print needs capitals","x must be a string","Nothing is wrong"], e:"if, elif and else lines always end with a colon."},
+  {d:7, q:"What does this print?", code:'age = 17\nhas_id = True\nif age >= 18 and has_id:\n    print("Enter")\nelse:\n    print("Stop")', o:["Stop","Enter","Error","Nothing"], e:"age >= 18 is False, and and needs both to be True."},
+  {d:7, q:"What does this print?", code:'answer = "  YES "\nprint(answer.strip().lower() == "yes")', o:["True","False","Error","yes"], e:".strip() removes the spaces, .lower() makes it small letters: \"yes\"."},
+  {d:7, q:"What does this print?", code:'n = 0\nif n > 0:\n    print("Positive")\nelif n < 0:\n    print("Negative")\nelse:\n    print("Zero")', o:["Zero","Positive","Negative","Nothing"], e:"Both conditions are False, so else runs."},
+  {d:7, q:"Does this code work?", code:'if x > 5:\n    print("Big")\nelse x <= 5:\n    print("Small")', o:["No: else never has a condition","Yes, it works fine","No: if needs round brackets","No: print needs a colon"], e:"else just means \"otherwise\". Write else: with nothing before the colon."},
+
+  /* ───── Day 08 ───── */
+  {d:8, q:"What does this print? (one number per line)", code:"for i in range(3):\n    print(i)", o:["0, 1, 2","1, 2, 3","0, 1, 2, 3","3"], e:"range(3) starts at 0 and stops before 3."},
+  {d:8, q:"Which numbers does `range(1, 6)` give?", o:["1 2 3 4 5","1 2 3 4 5 6","0 1 2 3 4 5","2 3 4 5 6"], e:"The stop number is never included. For 1 to 10, write range(1, 11)."},
+  {d:8, q:"Which numbers does `range(2, 11, 2)` give?", o:["2 4 6 8 10","2 4 6 8","2 3 4 5 6 7 8 9 10","1 3 5 7 9"], e:"Start at 2, stop before 11, jump by 2."},
+  {d:8, q:"How many times is Hi printed?", code:'for i in range(5):\n    print("Hi")', o:["5","4","6","1"], e:"range(5) gives 5 numbers: 0 to 4."},
+  {d:8, q:"What does this print?", code:"total = 0\nfor n in [1, 2, 3]:\n    total += n\nprint(total)", o:["6","3","123","0"], e:"0 + 1 + 2 + 3 = 6. print is outside the loop, so it runs once."},
+  {d:8, q:"What happens when you run this?", code:"count = 1\nwhile count <= 3:\n    print(count)", o:["It prints 1 forever: count never changes","It prints 1, 2, 3","It prints nothing","SyntaxError"], e:"Add count += 1 inside the loop. Press Ctrl + C to stop a loop that never ends."},
+  {d:8, q:"What does `break` do?", o:["Stops the whole loop right away","Skips only this round","Starts the loop again","Waits for one second"], e:"Found what you were looking for? break leaves the loop."},
+  {d:8, q:"What does this print? (one number per line)", code:"for n in range(1, 6):\n    if n == 3:\n        continue\n    print(n)", o:["1, 2, 4, 5","1, 2","1, 2, 3, 4, 5","3"], e:"continue skips the rest of the round when n is 3. The loop keeps going."},
+  {d:8, q:"What does this print? (one number per line)", code:"for n in range(1, 6):\n    if n == 3:\n        break\n    print(n)", o:["1, 2","1, 2, 4, 5","1, 2, 3","3, 4, 5"], e:"break stops the loop as soon as n is 3, before it prints."},
+  {d:8, q:"How many lines does this print?", code:'for letter in "Hi!":\n    print(letter)', o:["3","2","1","0"], e:"Every character counts, even the !"},
+  {d:8, q:"What does this print?", code:'prices = {"tea": 20, "momo": 150}\nfor item, price in prices.items():\n    print(item, price)', o:["tea 20, then momo 150","tea, then momo","20, then 150","Error"], e:".items() gives the key and the value every round."},
+  {d:8, q:"How many stars are printed?", code:'for i in range(2):\n    for j in range(3):\n        print("*")', o:["6","5","3","2"], e:"The inner loop runs 3 times for each of the 2 outer rounds: 2 × 3 = 6."},
+  {d:8, q:"What happens when you run this?", code:"for i in 5:\n    print(i)", o:["TypeError: you can't loop over a number","It prints 0 to 4","It prints 5","It prints 1 to 5"], e:"A number is not a group of items. Write range(5)."},
+  {d:8, q:"You want to keep asking the user until they type quit. Which loop fits best?", o:["while","for with range(10)","No loop is needed","if"], e:"Use while when you don't know how many times it will repeat."}
+];
+
+/* ───────── helpers ───────── */
+const LETTERS = ["A","B","C","D"];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const inline = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+const pad = n => String(n).padStart(2, "0");
+
+function highlight(code){
+  const re = /(#[^\n]*)|("[^"\n]*"|'[^'\n]*')|\b(if|elif|else|match|case|for|while|in|not|and|or|del|def|return|print|import|from|as|True|False|None|pass|break|continue)\b|\b([A-Za-z_]\w*)(?=\()/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(code))){
+    const cls = m[1] ? "cm" : m[2] ? "str" : m[3] ? "kw" : "fn";
+    out += esc(code.slice(last, m.index)) + `<span class="${cls}">${esc(m[0])}</span>`;
+    last = re.lastIndex;
+  }
+  return out + esc(code.slice(last));
+}
+
+/* Seeded shuffle, so option letters stay the same every time the page opens (printed sheets match class mode). */
+function seeded(seed){ return () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }; }
+function shuffle(list, rand = Math.random){
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+QUESTIONS.forEach((q, i) => {
+  q.id = i;
+  const order = shuffle([0,1,2,3], seeded(i * 7919 + 17));
+  q.options = order.map(k => q.o[k]);
+  q.answer = order.indexOf(0);
+});
+
+/* ───────── state ───────── */
+const state = {
+  days: new Set([1,2,3,4,5,6,7,8]),
+  mode: "class",
+  order: [],
+  pos: 0,
+  picked: {},      // question id -> chosen option index, or -1 when only revealed
+  showAnswers: true
+};
+const pool = () => QUESTIONS.filter(q => state.days.has(q.d));
+
+function setOrder(kind){
+  const p = pool();
+  if (kind === "shuffle") state.order = shuffle(p).map(q => q.id);
+  else if (kind === "random") state.order = shuffle(p).slice(0, 10).map(q => q.id);
+  else state.order = p.map(q => q.id);
+  state.pos = 0;
+  state.picked = {};
+  render();
+}
+
+/* ───────── day chips ───────── */
+function renderChips(){
+  const box = $("dayChips");
+  const counts = {};
+  QUESTIONS.forEach(q => counts[q.d] = (counts[q.d] || 0) + 1);
+  const all = state.days.size === 8;
+  box.innerHTML = `<span class="label">Days</span>` +
+    `<button class="chip" data-day="all" aria-pressed="${all}">All<small>${QUESTIONS.length}</small></button>` +
+    Object.keys(DAYS).map(d => `<button class="chip" data-day="${d}" aria-pressed="${!all && state.days.has(+d)}" title="${esc(DAYS[d])}">Day ${pad(d)}<small>${counts[d]}</small></button>`).join("");
+}
+$("dayChips").addEventListener("click", e => {
+  const chip = e.target.closest(".chip"); if (!chip) return;
+  const d = chip.dataset.day;
+  if (d === "all") state.days = new Set([1,2,3,4,5,6,7,8]);
+  else {
+    const n = +d;
+    if (state.days.size === 8) state.days = new Set([n]);          // from All, pick just this day
+    else if (state.days.has(n)) { state.days.delete(n); if (!state.days.size) state.days = new Set([1,2,3,4,5,6,7,8]); }
+    else state.days.add(n);
+  }
+  renderChips();
+  setOrder("all");
+});
+
+/* ───────── class mode ───────── */
+function renderClass(){
+  const view = $("classView");
+  const total = state.order.length;
+  if (!total){ view.innerHTML = `<div class="card"><div class="card-body">No questions for these days.</div></div>`; return; }
+  const answered = Object.keys(state.picked).length;
+  const right = Object.entries(state.picked).filter(([id, k]) => QUESTIONS[id].answer === k).length;
+
+  if (state.pos >= total){
+    const tried = Object.values(state.picked).filter(k => k >= 0).length;
+    view.innerHTML = `<div class="card"><div class="rule"></div><div class="summary">
+      <div class="big">${right} / ${tried || 0}</div>
+      <h2>${tried ? (right / tried >= .8 ? "Excellent work!" : right / tried >= .5 ? "Good job! Keep practising." : "Keep going. Review the slides and try again.") : "Quiz finished"}</h2>
+      <p>${total} questions shown · ${tried} answered · ${right} correct</p>
+      <div class="row"><button class="btn" id="sumBack">Back to questions</button><button class="btn" id="sumAgain">Same questions again</button><button class="btn primary" id="sumNew">New random 10</button></div>
+    </div></div>`;
+    $("sumBack").onclick = () => { state.pos = total - 1; render(); };
+    $("sumAgain").onclick = () => { state.pos = 0; state.picked = {}; render(); };
+    $("sumNew").onclick = () => setOrder("random");
+    return;
+  }
+
+  const q = QUESTIONS[state.order[state.pos]];
+  const picked = state.picked[q.id];
+  const done = picked !== undefined;
+  const opts = q.options.map((text, k) => {
+    let cls = "opt";
+    if (done){
+      if (k === q.answer) cls += " correct";
+      else if (k === picked) cls += " wrong";
+      else cls += " dim";
+    }
+    return `<button class="${cls}" data-k="${k}" ${done ? "disabled" : ""}><span class="letter">${LETTERS[k]}</span><span>${inline(text)}</span></button>`;
+  }).join("");
+
+  view.innerHTML = `<div class="card"><div class="rule"></div><div class="card-body">
+    <div class="card-top"><span class="tag">Day ${pad(q.d)} · ${esc(DAYS[q.d])}</span><span class="qcount">QUESTION ${state.pos + 1} / ${total}</span></div>
+    <h2 class="question">${inline(q.q)}</h2>
+    ${q.code ? `<pre class="code"><code>${highlight(q.code)}</code></pre>` : ""}
+    <div class="options">${opts}</div>
+    ${done ? `<div class="explain"><strong>${picked === -1 ? "Answer" : picked === q.answer ? "Correct!" : "Not quite."} ${LETTERS[q.answer]}: ${inline(q.options[q.answer])}</strong><br>${inline(q.e)}</div>` : ""}
+    <div class="nav">
+      <button class="btn" id="prev" ${state.pos === 0 ? "disabled" : ""}>← Previous</button>
+      <span class="score">Score <b>${right}</b> / ${answered}</span>
+      ${done ? `<button class="btn primary" id="next">${state.pos === total - 1 ? "See result →" : "Next →"}</button>`
+             : `<button class="btn" id="reveal">Show answer</button>`}
+    </div>
+    <div class="progress"><span style="width:${((state.pos + 1) / total) * 100}%"></span></div>
+  </div></div>
+  <p class="hint no-print">Keys: A–D or 1–4 to answer · Space to show the answer · ← → to move · F for fullscreen</p>`;
+
+  view.querySelectorAll(".opt").forEach(b => b.onclick = () => choose(+b.dataset.k));
+  $("prev").onclick = prev;
+  if ($("next")) $("next").onclick = next;
+  if ($("reveal")) $("reveal").onclick = reveal;
+}
+function current(){ return QUESTIONS[state.order[state.pos]]; }
+function choose(k){ const q = current(); if (!q || state.picked[q.id] !== undefined) return; state.picked[q.id] = k; render(); }
+function reveal(){ const q = current(); if (!q || state.picked[q.id] !== undefined) return; state.picked[q.id] = -1; render(); }
+function next(){ if (state.pos < state.order.length){ state.pos++; render(); } }
+function prev(){ if (state.pos > 0){ state.pos = Math.min(state.pos - 1, state.order.length - 1); render(); } }
+
+/* ───────── answer sheet ───────── */
+function renderSheet(){
+  const view = $("sheetView");
+  const qs = state.order.map(id => QUESTIONS[id]);
+  const days = [...state.days].sort((a, b) => a - b).map(pad).join(", ");
+  view.className = state.showAnswers ? "show-answers" : "";
+  view.innerHTML = `
+    <div class="row no-print" style="margin-bottom:14px">
+      <label class="toggle"><input type="checkbox" id="showAns" ${state.showAnswers ? "checked" : ""}> Show answers</label>
+      <span class="spacer"></span>
+      <button class="btn" id="printBtn">Print</button>
+    </div>
+    <h2 style="font-family:var(--serif);font-weight:600;margin:0 0 4px">Python Quiz · Day ${days}</h2>
+    <p style="color:var(--muted);margin:0 0 14px">Name: ______________________ &nbsp; Date: ____________ &nbsp; Score: ____ / ${qs.length}</p>
+    <div class="sheet">${qs.map((q, i) => `
+      <article class="sq">
+        <div class="sq-head"><span class="sq-num">${i + 1}.</span><span class="sq-q">${inline(q.q)}</span><span class="sq-day">Day ${pad(q.d)}</span></div>
+        ${q.code ? `<pre class="code"><code>${highlight(q.code)}</code></pre>` : ""}
+        <ol>${q.options.map((t, k) => `<li class="${k === q.answer ? "is-answer" : ""}"><b>${LETTERS[k]}</b>${inline(t)}</li>`).join("")}</ol>
+        <div class="sq-ex">${inline(q.e)}</div>
+      </article>`).join("")}
+    </div>
+    <div class="key"><h3>Answer key</h3><p>${qs.map((q, i) => `${i + 1}-${LETTERS[q.answer]}`).join(" &nbsp; ")}</p></div>`;
+  $("showAns").onchange = e => { state.showAnswers = e.target.checked; renderSheet(); };
+  $("printBtn").onclick = () => window.print();
+}
+
+/* ───────── wiring ───────── */
+function render(){
+  $("classView").hidden = state.mode !== "class";
+  $("sheetView").hidden = state.mode !== "sheet";
+  $("tabClass").setAttribute("aria-selected", state.mode === "class");
+  $("tabSheet").setAttribute("aria-selected", state.mode === "sheet");
+  if (state.mode === "class") renderClass(); else renderSheet();
+}
+$("tabClass").onclick = () => { state.mode = "class"; render(); };
+$("tabSheet").onclick = () => { state.mode = "sheet"; render(); };
+$("btnAll").onclick = () => setOrder("all");
+$("btnShuffle").onclick = () => setOrder("shuffle");
+$("btnRandom").onclick = () => setOrder("random");
+
+document.addEventListener("keydown", e => {
+  if (state.mode !== "class" || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest && e.target.closest("input")) return;
+  const key = e.key.toLowerCase();
+  const idx = ["a","b","c","d"].indexOf(key) >= 0 ? ["a","b","c","d"].indexOf(key) : ["1","2","3","4"].indexOf(key);
+  if (idx >= 0){ e.preventDefault(); choose(idx); return; }
+  if (key === " " || key === "enter"){
+    e.preventDefault();
+    const q = current();
+    if (q && state.picked[q.id] === undefined) reveal(); else next();
+  }
+  if (key === "arrowright"){ e.preventDefault(); next(); }
+  if (key === "arrowleft"){ e.preventDefault(); prev(); }
+  if (key === "f"){ e.preventDefault(); document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+});
+
+renderChips();
+setOrder("all");
+</script>
+</body>
+</html>
