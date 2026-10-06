@@ -1,0 +1,1160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#201d19">
+<title>Day 11 — *args and **kwargs</title>
+<style>
+  :root{
+    --bg:#f6f2ea; --paper:#fffdf8; --ink:#221f1a; --muted:#726b5e; --line:#e6ddc9;
+    --accent-a:#b1502e; --accent-a-soft:#f3ded0;
+    --accent-b:#2f5d52; --accent-b-soft:#dfe9e2;
+    --dark:#201d19; --dark-ink:#f4efe4;
+    --code-bg:#1c1815; --code-fg:#efe8db; --code-kw:#8fd6c4; --code-str:#e9b483; --code-cm:#8a8277; --code-fn:#e7cd8f;
+    --shadow:0 26px 60px rgba(24,17,8,.22), 0 4px 14px rgba(24,17,8,.1);
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{margin:0;overflow:hidden;background:var(--dark);color:var(--ink);font-family:var(--sans);}
+  button{font:inherit;}
+  .sprite{position:absolute;width:0;height:0;overflow:hidden;}
+  .icon{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+  .deck{min-height:100dvh;position:relative;background:var(--dark);}
+  .brand{position:fixed;z-index:5;top:clamp(14px,2.4vw,26px);left:clamp(16px,3vw,38px);display:flex;align-items:center;gap:9px;color:var(--dark-ink);opacity:.72;font-size:11px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;}
+  .brand .mark{width:22px;height:22px;display:grid;place-items:center;border:1px solid rgba(244,239,228,.4);border-radius:5px;font-family:var(--serif);font-size:12px;font-weight:700;}
+
+  .slides{min-height:100dvh;position:relative;z-index:1;}
+  .slide{position:absolute;inset:0;display:grid;place-items:center;padding:clamp(60px,7.5vw,88px) clamp(16px,6vw,90px) clamp(72px,8.5vw,104px);opacity:0;pointer-events:none;transform:translateX(38px);transition:opacity .22s ease, transform .32s cubic-bezier(.2,.75,.25,1);}
+  .slide{grid-template-columns:minmax(0,1fr);}
+  .slide.active{opacity:1;pointer-events:auto;transform:translateX(0);}
+  .slide.past{transform:translateX(-38px);}
+
+  .frame{--tint:var(--accent-a);--tint-soft:var(--accent-a-soft);width:min(1140px,100%);height:min(640px,calc(100dvh - 128px));min-height:420px;position:relative;overflow:hidden;border-radius:10px;background:var(--paper);box-shadow:var(--shadow);}
+  .frame.b{--tint:var(--accent-b);--tint-soft:var(--accent-b-soft);}
+  .frame.on-dark{background:var(--dark);}
+  .rule{height:3px;background:var(--tint);}
+
+  .body{height:calc(100% - 3px);padding:clamp(26px,4vw,52px) clamp(30px,4.6vw,58px);display:flex;flex-direction:column;overflow:hidden;position:relative;}
+
+  .kicker{display:flex;align-items:center;gap:10px;margin-bottom:clamp(14px,2vw,22px);flex-shrink:0;}
+  .kicker .tag{display:inline-flex;align-items:center;gap:7px;padding:5px 10px;border:1px solid var(--tint);border-radius:999px;color:var(--tint);font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;}
+  .kicker .tag .icon{width:13px;height:13px;}
+  .kicker .part{color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+
+  h1,h2,h3,p{margin:0;}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(38px,5.4vw,66px);line-height:1.02;letter-spacing:-.01em;max-width:760px;}
+  h2{font-family:var(--serif);font-weight:600;font-size:clamp(25px,3.1vw,38px);line-height:1.08;letter-spacing:-.005em;max-width:780px;margin-bottom:clamp(10px,1.6vw,16px);}
+  .subtitle{color:var(--muted);font-size:clamp(15px,1.7vw,19px);line-height:1.45;max-width:660px;font-style:italic;font-family:var(--serif);}
+  .copy{margin-top:12px;color:#3c362d;font-size:clamp(14.5px,1.5vw,17px);line-height:1.52;max-width:640px;}
+
+  .split{flex:1;min-height:0;display:grid;grid-template-columns:minmax(240px,.9fr) minmax(320px,1.05fr);gap:clamp(24px,4vw,54px);align-items:center;}
+  .split.code-wide{grid-template-columns:minmax(220px,.72fr) minmax(360px,1.28fr);}
+  .split.wide-left{grid-template-columns:minmax(260px,1.05fr) minmax(280px,.95fr);}
+
+  /* numbered rows list */
+  .rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;}
+  .rows li{display:flex;gap:16px;align-items:baseline;padding:10px 0;border-bottom:1px solid var(--line);}
+  .rows li:first-child{padding-top:0;}
+  .rows .n{flex-shrink:0;width:26px;color:var(--tint);font-family:var(--serif);font-weight:700;font-size:15px;}
+  .rows .t{color:#2e2a23;font-size:clamp(14px,1.35vw,16.5px);line-height:1.36;}
+  .rows .t code{font-family:var(--mono);font-size:.92em;color:var(--tint);}
+  .rows.compact li{padding:7px 0;}
+
+  /* quote / problem callout */
+  .quote{border-left:3px solid var(--tint);background:var(--tint-soft);padding:clamp(22px,3.2vw,34px);border-radius:0 6px 6px 0;}
+  .quote p{font-family:var(--serif);font-size:clamp(19px,2.3vw,27px);font-weight:600;line-height:1.28;color:#2a251e;}
+  .quote p strong{color:var(--tint);}
+
+  /* code */
+  .code-panel{height:100%;display:flex;flex-direction:column;min-height:0;}
+  .code-label{display:inline-flex;align-self:flex-start;align-items:center;gap:7px;padding:6px 11px;border-radius:5px 5px 0 0;background:var(--code-bg);color:var(--code-cm);font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;}
+  .code-label .icon{width:13px;height:13px;color:var(--tint);}
+  pre{flex:1;min-height:190px;max-height:440px;margin:0;padding:clamp(16px,2.2vw,24px);overflow:auto;color:var(--code-fg);background:var(--code-bg);border-radius:0 6px 6px 6px;font-family:var(--mono);font-size:clamp(12px,1.15vw,14.5px);line-height:1.6;white-space:pre-wrap;}
+  .kw{color:var(--code-kw);} .fn{color:var(--code-fn);} .str{color:var(--code-str);} .cm{color:var(--code-cm);font-style:italic;}
+
+  /* divider slide */
+  .divider-body{height:100%;display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,6vw,80px);color:var(--dark-ink);}
+  .divider-body .num{font-family:var(--serif);font-size:clamp(60px,9vw,120px);font-weight:600;color:var(--tint);line-height:1;opacity:.9;}
+  .divider-body .p-label{margin:14px 0 6px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(244,239,228,.55);}
+  .divider-body h1{color:var(--dark-ink);font-size:clamp(34px,5vw,58px);}
+  .divider-body .subtitle{color:rgba(244,239,228,.68);font-style:italic;}
+
+  /* hero / closing */
+  .hero-body,.closing-body{height:100%;display:flex;flex-direction:column;justify-content:center;padding:clamp(40px,6vw,80px);color:var(--dark-ink);}
+  .hero-body .mark,.closing-body .mark{width:52px;height:52px;display:grid;place-items:center;border:1.5px solid var(--tint);border-radius:8px;color:var(--tint);margin-bottom:22px;}
+  .hero-body .p-label,.closing-body .p-label{font-size:12px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--tint);margin-bottom:12px;}
+  .hero-body h1,.closing-body h1{color:var(--dark-ink);}
+  .hero-body .subtitle,.closing-body .subtitle{color:rgba(244,239,228,.68);}
+
+  /* practice */
+  .practice-box{border-left:3px solid var(--tint);background:var(--tint-soft);padding:clamp(20px,2.8vw,30px);border-radius:0 6px 6px 0;}
+  .practice-box h3{font-family:var(--serif);font-size:clamp(19px,2.1vw,24px);margin-bottom:9px;}
+  .practice-box p{color:#3c362d;font-size:clamp(14px,1.5vw,17px);line-height:1.48;}
+
+  /* cheatsheet */
+  .cheatgrid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;align-content:center;}
+  .cheatcard{border:1px solid var(--line);border-radius:6px;padding:12px 14px;background:#fffefb;}
+  .cheatcard code{display:block;font-family:var(--mono);font-size:12.5px;color:var(--tint);margin-bottom:5px;word-break:break-word;}
+  .cheatcard small{color:var(--muted);font-size:11.5px;line-height:1.3;display:block;}
+
+  /* remember */
+  .remember{flex:1;min-height:0;display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+  .remember-item{border-top:3px solid var(--tint);padding:14px 12px;background:#fffefb;box-shadow:0 6px 16px rgba(24,17,8,.06);display:flex;flex-direction:column;gap:8px;}
+  .remember-item .n{font-family:var(--serif);font-size:26px;font-weight:700;color:var(--tint);}
+  .remember-item p{font-size:12.5px;line-height:1.36;color:#2e2a23;}
+
+  /* comparison table */
+  .table-wrap{flex:1;min-height:0;overflow:auto;display:flex;align-items:center;}
+  table.compare{width:100%;border-collapse:collapse;font-size:clamp(13px,1.35vw,16px);}
+  .compare th,.compare td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);color:#2e2a23;}
+  .compare thead th{font-family:var(--serif);font-size:clamp(16px,1.7vw,20px);font-weight:600;color:var(--tint);border-bottom:2px solid var(--tint);}
+  .compare tbody th{color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
+  .compare code{font-family:var(--mono);font-size:.95em;color:var(--tint);}
+  .compare .yes{color:var(--accent-b);font-weight:700;} .compare .no{color:var(--accent-a);font-weight:700;}
+
+  /* loop anatomy */
+  .anatomy{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:clamp(14px,2vw,22px);}
+  .code-line{background:var(--code-bg);color:var(--code-fg);font-family:var(--mono);font-size:clamp(14px,1.8vw,22px);line-height:1.6;padding:18px 22px;border-radius:6px;overflow-x:auto;white-space:pre;}
+  .parts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+  .part-card{border:1px solid var(--line);border-top:3px solid var(--tint);border-radius:0 0 6px 6px;background:#fffefb;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0;}
+  .part-card small{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .part-card code{font-family:var(--mono);font-size:clamp(14px,1.5vw,18px);font-weight:700;color:var(--tint);word-break:break-word;}
+  .part-card p{color:#3c362d;font-size:clamp(12.5px,1.25vw,14.5px);line-height:1.4;}
+
+  /* flowchart diagram */
+  .diagram-side{display:flex;flex-direction:column;gap:14px;min-height:0;height:100%;justify-content:center;}
+  .diagram{display:flex;justify-content:center;min-height:0;}
+  .diagram svg{width:100%;max-width:380px;height:auto;max-height:min(300px,42vh);}
+  .diagram .d-q{fill:var(--dark);}
+  .diagram .d-qtxt{font-family:var(--mono);font-size:14px;font-weight:700;fill:var(--dark-ink);}
+  .diagram .d-yes{fill:var(--accent-b-soft);stroke:var(--accent-b);stroke-width:1.5;}
+  .diagram .d-no{fill:var(--accent-a-soft);stroke:var(--accent-a);stroke-width:1.5;}
+  .diagram .d-skip{fill:#fffefb;stroke:var(--muted);stroke-width:1.5;stroke-dasharray:5 4;}
+  .diagram .d-end{fill:#fffefb;stroke:var(--line);stroke-width:1.5;}
+  .diagram .d-txt{font-family:var(--sans);font-size:13px;font-weight:600;fill:var(--ink);}
+  .diagram .d-skiptxt{fill:var(--muted);font-style:italic;}
+  .diagram .d-line{fill:none;stroke:var(--muted);stroke-width:1.5;}
+  .diagram .d-arrow{fill:var(--muted);}
+  .diagram .d-lbl{font-family:var(--sans);font-size:11px;font-weight:700;letter-spacing:.06em;}
+  .diagram .d-lbl.t{fill:var(--accent-b);} .diagram .d-lbl.f{fill:var(--accent-a);} .diagram .d-lbl.r{fill:var(--muted);}
+  .diagram-side .copy{margin-top:0;font-size:clamp(13.5px,1.35vw,15.5px);}
+
+  .slide-number{position:absolute;right:clamp(22px,3.6vw,50px);bottom:clamp(16px,2.4vw,26px);color:#9a927f;font-size:11px;font-weight:700;letter-spacing:.08em;}
+
+  .controls{position:fixed;z-index:6;right:clamp(13px,3vw,36px);bottom:clamp(13px,2.2vw,26px);display:flex;gap:6px;align-items:center;padding:6px;border:1px solid rgba(244,239,228,.18);border-radius:8px;background:rgba(28,24,20,.9);box-shadow:0 10px 24px rgba(0,0,0,.25);}
+  .control{width:34px;height:34px;display:grid;place-items:center;padding:0;color:var(--dark-ink);border:0;border-radius:5px;background:transparent;cursor:pointer;}
+  .control:hover,.control:focus-visible{color:var(--dark);background:var(--dark-ink);outline:none;}
+  .control:disabled{opacity:.32;cursor:default;} .control:disabled:hover{color:var(--dark-ink);background:transparent;}
+  .counter{min-width:50px;color:var(--dark-ink);text-align:center;font-size:11px;font-weight:700;letter-spacing:.06em;}
+  .progress{position:fixed;z-index:7;left:0;right:0;bottom:0;height:4px;background:rgba(244,239,228,.15);}
+  .progress span{display:block;height:100%;width:0;background:var(--accent-a);transition:width .25s ease;}
+
+  @media (max-height:760px) and (min-width:761px){
+    .slide{padding-top:54px;padding-bottom:66px;}
+    .frame{height:calc(100dvh - 120px);}
+    .body{padding:24px 42px;}
+    h2{font-size:clamp(22px,2.8vw,32px);}
+  }
+
+  @media (max-width:760px){
+    .brand{font-size:9.5px;}
+    .slide{padding:56px 12px 72px;} .frame{height:min(760px,calc(100dvh - 132px));min-height:0;}
+    .body{padding:22px;overflow:auto;}
+    .split,.split.wide-left,.split.code-wide{grid-template-columns:1fr;gap:16px;}
+    .cheatgrid{grid-template-columns:1fr;} .remember{grid-template-columns:1fr;} .parts{grid-template-columns:1fr 1fr;} .code-line{font-size:13px;} .compare th,.compare td{padding:8px 8px;}
+    .diagram-side{height:auto;}
+    pre{min-height:160px;max-height:260px;}
+    .controls .control:first-child{display:none;} .control{width:31px;height:31px;}
+  }
+  @media print{
+    body{overflow:visible;background:#fff;}
+    .brand,.controls,.progress{display:none;}
+    .deck,.slides{min-height:auto;}
+    .slide{position:relative;display:block;opacity:1!important;transform:none!important;padding:0;page-break-after:always;}
+    .frame{width:100%;height:100vh;border-radius:0;box-shadow:none;}
+  }
+</style>
+</head>
+<body>
+<svg class="sprite" aria-hidden="true">
+  <symbol id="code" viewBox="0 0 24 24"><path d="m8 9-3 3 3 3"/><path d="m16 9 3 3-3 3"/><path d="m14 5-4 14"/></symbol>
+  <symbol id="branch" viewBox="0 0 24 24"><circle cx="6" cy="5" r="2.5"/><circle cx="6" cy="19" r="2.5"/><circle cx="18" cy="8" r="2.5"/><path d="M6 7.5v9"/><path d="M18 10.5c0 4-6 3.5-10.5 7"/></symbol>
+  <symbol id="cpu" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6M9 12h6M9 15h6"/></symbol>
+  <symbol id="play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></symbol>
+  <symbol id="pen" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-2.9-5.6 2.9 1.1-6.2L3 9.6l6.2-.9z"/></symbol>
+  <symbol id="history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="sliders" viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="m10.29 3.86-8.18 14.18A2 2 0 0 0 3.82 21h16.36a2 2 0 0 0 1.71-2.96L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+  <symbol id="message" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></symbol>
+  <symbol id="list" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+  <symbol id="left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M9 20v-6h6v6"/></symbol>
+  <symbol id="full" viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></symbol>
+  <symbol id="key" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></symbol>
+  <symbol id="lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+  <symbol id="hash" viewBox="0 0 24 24"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></symbol>
+  <symbol id="text" viewBox="0 0 24 24"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></symbol>
+  <symbol id="layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
+  <symbol id="target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="repeat" viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></symbol>
+  <symbol id="stop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol>
+  <symbol id="skip" viewBox="0 0 24 24"><path d="m5 4 10 8-10 8z"/><path d="M19 5v14"/></symbol>
+  <symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></symbol>
+  <symbol id="box" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></symbol>
+  <symbol id="fx" viewBox="0 0 24 24"><path d="M11 4h-1.5A2.5 2.5 0 0 0 7 6.5V20"/><path d="M4 11h6"/><path d="m14 11 6 8"/><path d="m20 11-6 8"/></symbol>
+  <symbol id="corner" viewBox="0 0 24 24"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></symbol>
+  <symbol id="tool" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.6-4.6"/></symbol>
+</svg>
+<main class="deck" aria-label="Day 11: Python *args and **kwargs lesson">
+  <div class="brand"><span class="mark">Py</span>Day 11 &bull; *args &amp; **kwargs</div>
+  <div class="slides" id="slides"></div>
+  <nav class="controls" aria-label="Slide controls">
+    <button class="control" id="homeButton" type="button" title="First slide" aria-label="First slide"><svg class="icon"><use href="#home"/></svg></button>
+    <button class="control" id="previousButton" type="button" title="Previous slide" aria-label="Previous slide"><svg class="icon"><use href="#left"/></svg></button>
+    <span class="counter" id="counter" aria-live="polite"></span>
+    <button class="control" id="nextButton" type="button" title="Next slide" aria-label="Next slide"><svg class="icon"><use href="#right"/></svg></button>
+    <button class="control" id="fullButton" type="button" title="Fullscreen" aria-label="Fullscreen"><svg class="icon"><use href="#full"/></svg></button>
+  </nav>
+  <div class="progress" aria-hidden="true"><span id="progress"></span></div>
+</main>
+<script>
+const slides = [
+  { kind:"hero", tint:"a", icon:"star", part:"Day 11", eyebrow:"Flexible Functions in Python",
+    title:"*args and **kwargs", subtitle:"Functions that take any number of values. One star collects values. Two stars collect name=value pairs. Then small projects using everything from Day 01 to Day 10." },
+
+  { kind:"remember", tint:"b", icon:"history", part:"Recap · Day 10", title:"What we learned yesterday",
+    subtitle:"Built-in functions. Today we use them inside our own flexible functions.",
+    items:["Built-in functions come with Python. No def, no import.",
+      "sum(), min(), max() and len() work on a whole list at once.",
+      "print() has settings: sep= goes between, end= goes at the end.",
+      "enumerate() numbers the items. zip() walks two lists together.",
+      "sorted() gives a new list. key=len compares by length."] },
+
+  { kind:"code", tint:"b", icon:"history", part:"Recap · Day 09", title:"Two ways to send a value",
+    subtitle:"Today's two stars are built on these two ideas.",
+    copy:"<strong>Positional</strong>: Python fills the boxes in order. <strong>Keyword</strong>: you say which box, with name=value. Today, <strong>*</strong> collects extra positional values and <strong>**</strong> collects extra keyword values.",
+    code:`def tea(name, sugar):
+    print(f"{name} wants tea with {sugar} sugar")
+
+# Positional: by order
+tea("Ram", 2)
+# Ram wants tea with 2 sugar
+
+# Keyword: by name (order doesn't matter)
+tea(sugar=1, name="Sita")
+# Sita wants tea with 1 sugar` },
+
+  /* ───────────── PART 01 · *ARGS ───────────── */
+  { kind:"divider", tint:"a", icon:"star", part:"Part 01", title:"One Star: *args",
+    subtitle:"Take as many values as the caller wants to send." },
+
+  { kind:"quote", tint:"a", icon:"alert", part:"Part 01 · The problem", title:"A fixed number of boxes",
+    subtitle:"Our Day 09 functions take an exact number of values.",
+    rows:["add(a, b) takes exactly 2 values",
+      "add(2, 3, 4) gives a TypeError",
+      "Writing add3(), add4(), add5()... is silly",
+      "But print() takes any number of values. How?"],
+    quote:"What if one function could take <strong>any number</strong> of values: 2, 3, 10 or even 0? That's what <strong>*args</strong> does." },
+
+  { kind:"code", tint:"a", icon:"alert", part:"Part 01 · The problem", title:"Try it: one value too many",
+    subtitle:"The Day 09 rule: 2 boxes means 2 values.",
+    copy:"Python counts the values you send. 3 values for 2 boxes is a <strong>TypeError</strong>. Read the error slowly: it tells you exactly what went wrong.",
+    code:`def add(a, b):
+    return a + b
+
+print(add(2, 3))        # 5
+
+print(add(2, 3, 4))
+# TypeError: add() takes 2 positional
+# arguments but 3 were given` },
+
+  { kind:"code", tint:"a", icon:"star", part:"Part 01 · The fix", title:"Put a * before the name",
+    subtitle:"One star means: collect all the values into one box.",
+    copy:"Now <strong>numbers</strong> holds every value the caller sends. Loop over it like any collection (Day 08). One function now works for 2, 3, 4 or even 0 values.",
+    code:`def add(*numbers):
+    total = 0
+    for n in numbers:
+        total += n
+    return total
+
+print(add(2, 3))              # 5
+print(add(2, 3, 4))           # 9
+print(add(10, 20, 30, 40))    # 100
+print(add())                  # 0` },
+
+  { kind:"parts", tint:"a", icon:"layers", part:"Part 01 · Anatomy", title:"How *args looks",
+    subtitle:"Only one new thing: the star.",
+    code:`def add(*numbers):`,
+    parts:[
+      {label:"Keyword", code:"def", text:"Starts a function. Same as Day 09."},
+      {label:"Name", code:"add", text:"The function name. Pick a clear one."},
+      {label:"The star", code:"*", text:"Means: collect all the extra values here."},
+      {label:"The box", code:"numbers", text:"Holds every value, packed in a tuple."} ] },
+
+  { kind:"code", tint:"a", icon:"box", part:"Part 01 · What's inside", title:"What's inside the box? A tuple!",
+    subtitle:"Print it and see for yourself.",
+    copy:"Python packs the values into a <strong>tuple</strong> (Day 05). So you can loop over it, use len(), and use [0] for the first item. But you can't change it. Send nothing, and you get an empty tuple ().",
+    code:`def show(*args):
+    print(args)
+    print(type(args))
+    print(len(args))
+
+show("momo", "tea", "dal")
+# ('momo', 'tea', 'dal')
+# <class 'tuple'>
+# 3
+
+show()
+# ()
+# <class 'tuple'>
+# 0` },
+
+  { kind:"code", tint:"a", icon:"text", part:"Part 01 · The name", title:"Why is it called args?",
+    subtitle:"The star does the work. The name is your choice.",
+    copy:"<strong>args</strong> is short for <strong>arguments</strong>. Most programmers use it, so you will see it everywhere. But a clear name like <strong>*prices</strong> or <strong>*names</strong> tells the reader what goes inside. Both are correct.",
+    code:`# All three work the same way
+def add(*args):
+    return sum(args)
+
+def add(*numbers):
+    return sum(numbers)
+
+def add(*prices):
+    return sum(prices)
+
+print(add(100, 50, 25))    # 175
+
+# The * is the magic part, not the name.` },
+
+  { kind:"code", tint:"a", icon:"tool", part:"Part 01 · With built-ins", title:"Day 10 built-ins love *args",
+    subtitle:"args is a tuple, so every built-in works on it.",
+    copy:"No loops needed. <strong>len</strong>, <strong>sum</strong>, <strong>max</strong>, <strong>min</strong> and <strong>sorted</strong> all work directly on the box. Note: sorted() gives back a <strong>list</strong>, not a tuple.",
+    code:`def report(*marks):
+    print(f"Count:   {len(marks)}")
+    print(f"Total:   {sum(marks)}")
+    print(f"Highest: {max(marks)}")
+    print(f"Lowest:  {min(marks)}")
+    print(f"Sorted:  {sorted(marks)}")
+
+report(67, 45, 92, 78)
+# Count:   4
+# Total:   282
+# Highest: 92
+# Lowest:  45
+# Sorted:  [45, 67, 78, 92]` },
+
+  { kind:"code", tint:"a", icon:"message", part:"Part 01 · Mix them", title:"Normal parameters + *args",
+    subtitle:"Normal boxes first. The star box takes the leftovers.",
+    copy:"The first value goes into <strong>greeting</strong>. Everything left over goes into <strong>names</strong>. Normal parameters always come <strong>before</strong> *args.",
+    code:`def greet(greeting, *names):
+    for name in names:
+        print(f"{greeting}, {name}!")
+
+greet("Namaste", "Ram", "Sita", "Hari")
+# Namaste, Ram!
+# Namaste, Sita!
+# Namaste, Hari!
+
+greet("Hello", "Gita")
+# Hello, Gita!` },
+
+  { kind:"steps", tint:"a", icon:"list", part:"Part 01 · Step by step", title:"How Python fills the boxes",
+    subtitle:"greet(\"Namaste\", \"Ram\", \"Sita\", \"Hari\")",
+    rows:["Python reads the values from left to right",
+      "<code>\"Namaste\"</code> goes into the first box: <code>greeting</code>",
+      "No more normal boxes. <code>\"Ram\"</code>, <code>\"Sita\"</code>, <code>\"Hari\"</code> are left over",
+      "The leftovers are packed into a tuple: <code>names</code>",
+      "If there are no leftovers, <code>names</code> is just <code>()</code>"],
+    code:`def greet(greeting, *names):
+    print("greeting =", greeting)
+    print("names    =", names)
+
+greet("Namaste", "Ram", "Sita", "Hari")
+# greeting = Namaste
+# names    = ('Ram', 'Sita', 'Hari')
+
+greet("Namaste")
+# greeting = Namaste
+# names    = ()` },
+
+  { kind:"code", tint:"a", icon:"message", part:"Part 01 · You know one", title:"print() uses *args too!",
+    subtitle:"That's why it takes any number of values.",
+    copy:"Inside Python, print is written with a star. And look: <strong>sep</strong> and <strong>end</strong> come <strong>after</strong> *values. That's why you must write sep= by name. Without the name, *values would just swallow it.",
+    code:`# Inside Python, print looks like this:
+# def print(*values, sep=" ", end="\\n"):
+
+print("a")
+print("a", "b", "c")
+print("a", "b", "c", "d", "e", sep="-")
+
+# a
+# a b c
+# a-b-c-d-e` },
+
+  { kind:"code", tint:"a", icon:"key", part:"Part 01 · After the star", title:"After *args, use the name",
+    subtitle:"A box after the star can only be filled by name.",
+    copy:"Here <strong>discount</strong> comes after *prices, so you must write <strong>discount=10</strong>. Forget the name, and *prices swallows your 10 as one more price. No error, just a wrong answer!",
+    code:`def total(*prices, discount=0):
+    amount = sum(prices)
+    return amount - amount * discount / 100
+
+print(total(100, 200, 300))
+# 600.0
+
+print(total(100, 200, 300, discount=10))
+# 540.0   (10% off)
+
+print(total(100, 200, 300, 10))
+# 610.0   (oops! 10 became a price)` },
+
+  { kind:"practice", tint:"a", icon:"pen", part:"Quick check · *args", title:"Guess the output",
+    subtitle:"5 minutes",
+    task:"Guess every line first, then run it. The last line gives an error. What kind of error, and why? Bonus: fix first() so it returns None when nothing is sent. (Hint: if not things:)",
+    code:`quick_args.py
+
+def count(*things):
+    return len(things)
+
+def first(*things):
+    return things[0]
+
+def join_all(sep, *words):
+    return sep.join(words)
+
+print(count(1, 2, 3))
+print(count())
+print(first("tea", "coffee"))
+print(join_all("-", "a", "b", "c"))
+print(first())` },
+
+  /* ───────────── PART 02 · **KWARGS ───────────── */
+  { kind:"divider", tint:"b", icon:"key", part:"Part 02", title:"Two Stars: **kwargs",
+    subtitle:"Take as many name=value pairs as the caller wants to send." },
+
+  { kind:"quote", tint:"b", icon:"alert", part:"Part 02 · The problem", title:"Too many optional details",
+    subtitle:"Think of a student profile form.",
+    rows:["One person sends age and city",
+      "Another sends phone, email and hobby",
+      "A box for every detail is too long",
+      "We want: send any name=value we like"],
+    quote:"<strong>**kwargs</strong> collects every <strong>name=value</strong> into a <strong>dictionary</strong>. kwargs means keyword arguments." },
+
+  { kind:"code", tint:"b", icon:"key", part:"Part 02 · First look", title:"Your first **kwargs",
+    subtitle:"Two stars, and you get a dictionary.",
+    copy:"The name you write becomes the <strong>key</strong>. The value becomes the <strong>value</strong>. It's a real Day 06 dictionary. Send nothing, and you get an empty dictionary {}.",
+    code:`def profile(**info):
+    print(info)
+    print(type(info))
+
+profile(name="Ram", age=21, city="Pokhara")
+# {'name': 'Ram', 'age': 21, 'city': 'Pokhara'}
+# <class 'dict'>
+
+profile()
+# {}
+# <class 'dict'>` },
+
+  { kind:"parts", tint:"b", icon:"layers", part:"Part 02 · Anatomy", title:"How **kwargs looks",
+    subtitle:"Same idea as *args, with one more star.",
+    code:`def profile(**info):`,
+    parts:[
+      {label:"Keyword", code:"def", text:"Starts a function. Same as always."},
+      {label:"Name", code:"profile", text:"The function name."},
+      {label:"Two stars", code:"**", text:"Means: collect every name=value here."},
+      {label:"The box", code:"info", text:"Holds every pair, packed in a dictionary."} ] },
+
+  { kind:"code", tint:"b", icon:"repeat", part:"Part 02 · Loop it", title:"Loop through kwargs",
+    subtitle:"Each person can send different details.",
+    copy:"Use <strong>.items()</strong> from Day 06 with a for loop from Day 08. You get the key and the value each round. The function doesn't care how many pairs there are.",
+    code:`def profile(**info):
+    for key, value in info.items():
+        print(f"{key}: {value}")
+    print("----")
+
+profile(name="Sita", age=22, city="Kathmandu")
+# name: Sita
+# age: 22
+# city: Kathmandu
+# ----
+
+profile(name="Hari", hobby="football")
+# name: Hari
+# hobby: football
+# ----` },
+
+  { kind:"code", tint:"b", icon:"sliders", part:"Part 02 · Dictionary tools", title:"Use .get() for missing options",
+    subtitle:"All your Day 06 dictionary tools work on kwargs.",
+    copy:"<strong>.get(key, default)</strong> gives a backup value when the caller didn't send that option. No KeyError. You can also check with <strong>if \"milk\" in options:</strong>",
+    code:`def order_tea(**options):
+    sugar = options.get("sugar", 1)
+    milk = options.get("milk", "yes")
+    print(f"Tea: sugar={sugar}, milk={milk}")
+    print(f"Options sent: {len(options)}")
+
+order_tea(sugar=2)
+# Tea: sugar=2, milk=yes
+# Options sent: 1
+
+order_tea(sugar=0, milk="no")
+# Tea: sugar=0, milk=no
+# Options sent: 2` },
+
+  { kind:"code", tint:"b", icon:"message", part:"Part 02 · Mix them", title:"Normal parameters + **kwargs",
+    subtitle:"The normal box first. The two-star box takes the named extras.",
+    copy:"<strong>name</strong> is required. The subjects are free: send 2, send 5, any names you like. <strong>sum(marks.values())</strong> adds them up, like Day 10.",
+    code:`def student(name, **marks):
+    print(f"Student: {name}")
+    for subject, mark in marks.items():
+        print(f"  {subject}: {mark}")
+    print(f"  Total: {sum(marks.values())}")
+
+student("Gita", math=88, science=76, english=91)
+# Student: Gita
+#   math: 88
+#   science: 76
+#   english: 91
+#   Total: 255` },
+
+  { kind:"compare", tint:"b", icon:"layers", part:"Part 02 · Side by side", title:"*args vs **kwargs",
+    subtitle:"Same idea. One collects values, the other collects name=value pairs.",
+    head:["", "*args", "**kwargs"],
+    rows:[
+      ["Stars", "One <code>*</code>", "Two <code>**</code>"],
+      ["Collects", "Values by order", "name=value pairs"],
+      ["Becomes a", "Tuple (Day 05)", "Dictionary (Day 06)"],
+      ["Call like", "<code>f(1, 2, 3)</code>", "<code>f(a=1, b=2)</code>"],
+      ["Loop with", "<code>for x in args:</code>", "<code>for k, v in kwargs.items():</code>"],
+      ["Nothing sent", "<code>()</code>", "<code>{}</code>"] ] },
+
+  { kind:"code", tint:"b", icon:"alert", part:"Part 02 · Be careful", title:"**kwargs only takes name=value",
+    subtitle:"And the name follows the Day 03 variable rules.",
+    copy:"A plain value has no box to go into, so it's a <strong>TypeError</strong>. The name must be a valid variable name: no spaces, and it can't start with a number. Otherwise it's a <strong>SyntaxError</strong>.",
+    code:`def profile(**info):
+    print(info)
+
+profile(name="Ram")        # {'name': 'Ram'}
+
+profile("Ram")
+# TypeError: profile() takes 0 positional
+# arguments but 1 was given
+
+profile(first name="Ram")
+# SyntaxError: invalid syntax
+# (a space is not allowed in a name)
+
+profile(first_name="Ram")  # OK` },
+
+  { kind:"practice", tint:"b", icon:"pen", part:"Quick check · **kwargs", title:"Guess the output",
+    subtitle:"5 minutes",
+    task:"Guess every line, then run it. The last line gives an error. Why? Bonus: make momo() also print how many extras were added, using len().",
+    code:`quick_kwargs.py
+
+def info(**details):
+    return details
+
+def count(**details):
+    return len(details)
+
+print(info(a=1, b=2))
+print(count(x=10, y=20, z=30))
+print(info())
+
+def momo(plate, **extras):
+    print(f"{plate} momo")
+    for name, amount in extras.items():
+        print(f"- {name} x{amount}")
+
+momo("Buff", achar=2, soup=1)
+momo("Veg", "achar")` },
+
+  /* ───────────── PART 03 · TOGETHER ───────────── */
+  { kind:"divider", tint:"a", icon:"layers", part:"Part 03", title:"Using Both Together",
+    subtitle:"Normal, *args and **kwargs in one function. And the order rule." },
+
+  { kind:"code", tint:"a", icon:"layers", part:"Part 03 · All in one", title:"Everything in one function",
+    subtitle:"Python fills the boxes from left to right.",
+    copy:"First the normal boxes. Then extra plain values go to <strong>*args</strong>. Then name=value pairs go to <strong>**kwargs</strong>. Every value finds a home.",
+    code:`def demo(a, *args, **kwargs):
+    print("a      =", a)
+    print("args   =", args)
+    print("kwargs =", kwargs)
+
+demo(1, 2, 3, x=10, y=20)
+# a      = 1
+# args   = (2, 3)
+# kwargs = {'x': 10, 'y': 20}
+
+demo(1)
+# a      = 1
+# args   = ()
+# kwargs = {}` },
+
+  { kind:"steps", tint:"a", icon:"list", part:"Part 03 · The order rule", title:"The order rule",
+    subtitle:"One star before two stars. Two stars always last.",
+    rows:["Normal parameters: <code>customer</code>",
+      "One star: <code>*items</code>",
+      "Named-only boxes (after the star): <code>delivery=False</code>",
+      "Two stars, always last: <code>**notes</code>"],
+    code:`# Correct order
+def order(customer, *items, delivery=False, **notes):
+    print(customer, items, delivery, notes)
+
+order("Ram", "momo", "tea", delivery=True, spicy="yes")
+# Ram ('momo', 'tea') True {'spicy': 'yes'}
+
+# Wrong: nothing can come after **
+# def order(**notes, customer):
+# SyntaxError: arguments cannot follow
+# var-keyword argument` },
+
+  { kind:"code", tint:"a", icon:"alert", part:"Part 03 · When calling", title:"Calling: plain values first",
+    subtitle:"Same rule when you call: plain values, then name=value.",
+    copy:"Once you write a name=value, every value after it needs a name too. Break this rule and it's a <strong>SyntaxError</strong>. A SyntaxError stops the whole file, so try this line on its own.",
+    code:`def demo(*args, **kwargs):
+    print(args, kwargs)
+
+demo(1, 2, x=3)      # (1, 2) {'x': 3}
+demo(x=3)            # () {'x': 3}
+demo(1, 2)           # (1, 2) {}
+
+demo(x=3, 1, 2)
+# SyntaxError: positional argument
+# follows keyword argument` },
+
+  { kind:"practice", tint:"a", icon:"pen", part:"Quick check · Together", title:"Guess the output",
+    subtitle:"5 minutes",
+    task:"Guess every line, then run it. The last line gives an error. Which box is empty? Bonus: why does (2,) have a comma? (Remember Day 05.)",
+    code:`quick_both.py
+
+def mix(first, *args, **kwargs):
+    print(first, args, kwargs)
+
+mix(1)
+mix(1, 2, 3)
+mix(1, b=2)
+mix(1, 2, c=3, d=4)
+mix(a=1)` },
+
+  /* ───────────── PART 04 · UNPACKING ───────────── */
+  { kind:"divider", tint:"b", icon:"box", part:"Part 04", title:"Stars When Calling",
+    subtitle:"Open a list or a dictionary, and send what's inside." },
+
+  { kind:"code", tint:"b", icon:"box", part:"Part 04 · * in a call", title:"* opens a list",
+    subtitle:"Same star, opposite job.",
+    copy:"In a <strong>def</strong>, * <strong>packs</strong> many values into a tuple. In a <strong>call</strong>, * <strong>unpacks</strong> a list or tuple into separate values. *nums becomes 10, 20, 30.",
+    code:`def add(a, b, c):
+    return a + b + c
+
+nums = [10, 20, 30]
+
+# Long way
+print(add(nums[0], nums[1], nums[2]))   # 60
+
+# Short way
+print(add(*nums))                        # 60
+
+# add(*nums) is the same as add(10, 20, 30)` },
+
+  { kind:"code", tint:"b", icon:"message", part:"Part 04 · With print()", title:"print() + * = clean output",
+    subtitle:"Day 10's sep= meets today's star.",
+    copy:"print(fruits) shows the brackets and quotes. <strong>print(*fruits)</strong> sends each item on its own, so you get clean words. Add <strong>sep=</strong> to choose what goes between.",
+    code:`fruits = ["apple", "mango", "banana"]
+
+print(fruits)              # ['apple', 'mango', 'banana']
+print(*fruits)             # apple mango banana
+print(*fruits, sep=", ")   # apple, mango, banana
+
+print(*fruits, sep="\\n")
+# apple
+# mango
+# banana
+
+print(*"Nepal")            # N e p a l` },
+
+  { kind:"code", tint:"b", icon:"key", part:"Part 04 · ** in a call", title:"** opens a dictionary",
+    subtitle:"Each key goes into the box with the same name.",
+    copy:"The keys must <strong>match</strong> the parameter names. A wrong or extra key gives a <strong>TypeError</strong>: unexpected keyword argument.",
+    code:`def profile(name, age, city):
+    print(f"{name}, {age}, from {city}")
+
+ram = {"name": "Ram", "age": 21, "city": "Pokhara"}
+
+profile(**ram)
+# Ram, 21, from Pokhara
+
+# profile(**ram) is the same as
+# profile(name="Ram", age=21, city="Pokhara")` },
+
+  { kind:"code", tint:"b", icon:"repeat", part:"Part 04 · Pack and unpack", title:"Unpack into *args",
+    subtitle:"Open a list, and *args packs it again.",
+    copy:"You can use * more than once in one call, and mix it with normal values. Great when your data is already in a list, like marks from input().split().",
+    code:`def total(*prices):
+    return sum(prices)
+
+cart = [120, 80, 250]
+more = (50, 30)
+
+print(total(*cart))           # 450
+print(total(*cart, *more))    # 530
+print(total(*cart, 100))      # 550
+print(total(cart))
+# TypeError: unsupported operand type(s)
+# for +: 'int' and 'list'   (forgot the *)` },
+
+  { kind:"code", tint:"b", icon:"star", part:"Part 04 · Bonus", title:"The star in Day 05 unpacking",
+    subtitle:"A star catches \"everything else\".",
+    copy:"Remember <strong>first, *rest = t</strong> from Day 05? Same star idea: one name catches everything that's left over. Here the star makes a <strong>list</strong>, not a tuple.",
+    code:`marks = [92, 78, 67, 45, 30]
+
+first, *rest = marks
+print(first)      # 92
+print(rest)       # [78, 67, 45, 30]
+
+top, *middle, last = marks
+print(top, last)  # 92 30
+print(middle)     # [78, 67, 45]` },
+
+  { kind:"practice", tint:"b", icon:"pen", part:"Quick check · Unpacking", title:"Guess the output",
+    subtitle:"5 minutes",
+    task:"Guess every line, then run it. The last line gives an error. Why? Bonus: make a dictionary for a room 4 by 7 and print its area with **.",
+    code:`quick_unpack.py
+
+def area(length, width):
+    return length * width
+
+size = [5, 4]
+room = {"length": 3, "width": 6}
+names = ["Ram", "Sita", "Hari"]
+
+print(area(*size))
+print(area(**room))
+print(*names, sep=" | ")
+
+first, *others = names
+print(others)
+
+print(area(*[1, 2, 3]))` },
+
+  /* ───────────── PART 05 · PROJECTS ───────────── */
+  { kind:"divider", tint:"a", icon:"target", part:"Part 05", title:"Project Time",
+    subtitle:"Three small programs. *args and **kwargs plus everything from Day 01 to Day 10." },
+
+  { kind:"practice", tint:"a", icon:"list", part:"Project 01 · *args + built-ins", title:"Flexible shopping bill",
+    subtitle:"10 minutes",
+    task:"Create 01_shopping_bill.py. make_bill() takes any number of prices with *prices, and a discount that must be sent by name. Day 07 if checks for an empty cart. Day 10 built-ins do the maths.",
+    code:`01_shopping_bill.py
+
+def make_bill(*prices, discount=0):
+    if not prices:
+        print("Cart is empty!")
+        return 0
+    total = sum(prices)
+    saved = total * discount / 100
+    print(f"Items:     {len(prices)}")
+    print(f"Costliest: Rs. {max(prices)}")
+    print(f"Total:     Rs. {total}")
+    print(f"Discount:  Rs. {round(saved, 2)}")
+    return round(total - saved, 2)
+
+pay = make_bill(1200, 350, 140, 260, discount=10)
+print(f"To pay:    Rs. {pay}")
+
+# Items:     4
+# Costliest: Rs. 1200
+# Total:     Rs. 1950
+# Discount:  Rs. 195.0
+# To pay:    Rs. 1755.0
+
+# Your job:
+# 1. call make_bill() with no prices. What happens?
+# 2. ask the user for prices with input().split(),
+#    turn each one into an int (Day 10 project),
+#    then send them with make_bill(*prices)` },
+
+  { kind:"practice", tint:"a", icon:"star", part:"Project 02 · **kwargs + if + dict", title:"Report card",
+    subtitle:"12 minutes",
+    task:"Create 02_report_card.py. The student's name is a normal box. Every subject comes in through **marks, so each student can have different subjects. Use if/else (Day 07), .items() (Day 06) and sum, len, max (Day 10).",
+    code:`02_report_card.py
+
+def report_card(name, **marks):
+    print(f"===== {name} =====")
+    for subject, mark in marks.items():
+        if mark >= 40:
+            result = "Pass"
+        else:
+            result = "Fail"
+        print(f"{subject}: {mark} ({result})")
+
+    total = sum(marks.values())
+    average = round(total / len(marks), 2)
+    best = max(marks, key=marks.get)
+    print(f"Total: {total}")
+    print(f"Average: {average}")
+    print(f"Best subject: {best}")
+
+report_card("Sita", math=88, science=35, english=91, nepali=72)
+
+# ===== Sita =====
+# math: 88 (Pass)
+# science: 35 (Fail)
+# english: 91 (Pass)
+# nepali: 72 (Pass)
+# Total: 286
+# Average: 71.5
+# Best subject: english
+
+# Your job:
+# 1. if every mark is 40 or more, print "Promoted!"
+#    (hint: all() from Day 10)
+# 2. save Ram's marks in a dictionary, then call
+#    report_card("Ram", **ram_marks)` },
+
+  { kind:"practice", tint:"a", icon:"target", part:"Project 03 · Capstone", title:"Momo shop order",
+    subtitle:"15 minutes",
+    task:"Create 03_momo_shop.py. place_order() uses all three: a normal box for the customer, *items for the food, and **options for extras. The menu is a Day 06 dictionary. enumerate() (Day 10) numbers each line.",
+    code:`03_momo_shop.py
+
+menu = {"momo": 150, "chowmein": 120, "tea": 30, "lassi": 80}
+
+def place_order(customer, *items, **options):
+    print(f"Order for {customer}")
+    total = 0
+    for num, item in enumerate(items, start=1):
+        if item in menu:
+            print(f"{num}. {item}: Rs. {menu[item]}")
+            total += menu[item]
+        else:
+            print(f"{num}. {item}: not on the menu")
+
+    if options.get("delivery"):
+        print("Delivery: Rs. 50")
+        total += 50
+    for key, value in options.items():
+        if key != "delivery":
+            print(f"Note: {key} = {value}")
+
+    print(f"Total: Rs. {total}")
+    return total
+
+place_order("Hari", "momo", "tea", "pizza", delivery=True, spicy="extra")
+
+# Order for Hari
+# 1. momo: Rs. 150
+# 2. tea: Rs. 30
+# 3. pizza: not on the menu
+# Delivery: Rs. 50
+# Note: spicy = extra
+# Total: Rs. 230
+
+# Your job:
+# 1. save the returned total, then add 13% VAT
+# 2. ask the user for items with input().split(),
+#    then send them with place_order("You", *items)` },
+
+  /* ───────────── PART 06 · MORE PRACTICE ───────────── */
+  { kind:"divider", tint:"b", icon:"pen", part:"Part 06", title:"More Practice",
+    subtitle:"Finished early? Try these in class, or at home." },
+
+  { kind:"practice", tint:"b", icon:"sliders", part:"Practice 04 · *args + return", title:"Stats helper",
+    subtitle:"8 minutes",
+    task:"Create 04_stats.py. stats() takes any amount of numbers and returns three answers. Unpack them like Day 05. If nothing is sent, return None.",
+    code:`04_stats.py
+
+def stats(*numbers):
+    if len(numbers) == 0:
+        return None
+    average = round(sum(numbers) / len(numbers), 2)
+    return min(numbers), max(numbers), average
+
+low, high, avg = stats(12, 45, 7, 30)
+print(f"Low: {low}, High: {high}, Average: {avg}")
+# Low: 7, High: 45, Average: 23.5
+
+print(stats())     # None
+
+# Your job:
+# 1. make a list marks = [67, 45, 92, 78]
+#    and call stats(*marks)
+# 2. also return how many numbers were sent` },
+
+  { kind:"practice", tint:"b", icon:"list", part:"Practice 05 · **kwargs + list", title:"Student list",
+    subtitle:"10 minutes",
+    task:"Create 05_students.py. Every student can have different details, so add_student() uses **info. Each dictionary is added to a list (Day 04), then printed with enumerate().",
+    code:`05_students.py
+
+def add_student(students, **info):
+    students.append(info)
+    print(f"Added: {info.get('name', 'Unknown')}")
+
+students = []
+add_student(students, name="Ram", age=21, city="Pokhara")
+add_student(students, name="Sita", age=22)
+add_student(students, age=19, city="Butwal")
+
+for num, s in enumerate(students, start=1):
+    print(f"{num}. {s}")
+
+# Added: Ram
+# Added: Sita
+# Added: Unknown
+# 1. {'name': 'Ram', 'age': 21, 'city': 'Pokhara'}
+# 2. {'name': 'Sita', 'age': 22}
+# 3. {'age': 19, 'city': 'Butwal'}
+
+# Your job:
+# 1. print only the students who have a "city"
+#    (hint: "city" in s, Day 06)
+# 2. print the average age of all students` },
+
+  { kind:"practice", tint:"b", icon:"message", part:"Practice 06 · Your own print", title:"Make your own shout()",
+    subtitle:"10 minutes",
+    task:"Create 06_shout.py. Build your own mini print(): any number of words with *words, then sep and end that must be sent by name, just like the real print() from Day 10.",
+    code:`06_shout.py
+
+def shout(*words, sep=" ", end="!"):
+    text = sep.join(words)
+    print(text.upper() + end)
+
+shout("hello", "class")                 # HELLO CLASS!
+shout("python", "is", "fun", sep="-")   # PYTHON-IS-FUN!
+shout("namaste", end="!!!")             # NAMASTE!!!
+
+words = ["we", "love", "momo"]
+shout(*words)                           # WE LOVE MOMO!
+
+# Your job:
+# 1. add times=1, and print the line that many times
+# 2. what happens with shout(5, 10)? Fix it with str()` },
+
+  { kind:"bullets", tint:"a", icon:"star", part:"Practice · Homework", title:"Small challenges for home",
+    subtitle:"Try them without looking at the slides.",
+    rows:["Write <code>multiply(*nums)</code> that multiplies all the numbers. <code>multiply(2, 3, 4)</code> gives 24",
+      "Write <code>biggest(*nums)</code> that returns the biggest number, or None if nothing is sent",
+      "Write <code>make_card(**info)</code> that prints each detail on its own line",
+      "Write <code>count_long(*words)</code> that counts the words longer than 4 letters",
+      "Use <code>print(*list, sep=\", \")</code> to print your 5 favourite foods in one clean line",
+      "Add <code>**options</code> to your Day 09 calculator, like <code>round_to=2</code>"] },
+
+  { kind:"bullets", tint:"b", icon:"alert", part:"Recap · Common mistakes", title:"Common mistakes",
+    subtitle:"Everyone makes these at first. That's normal.",
+    rows:["Forgetting the star: <code>def add(numbers)</code> takes only one value",
+      "<code>args.append(5)</code> is an AttributeError. args is a tuple, you can't change it",
+      "<code>total(100, 200, 10)</code>: forgot <code>discount=</code>, so 10 became a price",
+      "<code>def f(**kwargs, a)</code> is a SyntaxError. Two stars always go last",
+      "<code>f(x=1, 2)</code> is a SyntaxError. Plain values first, then name=value",
+      "<code>args[0]</code> when nothing was sent is an IndexError. Check <code>if not args:</code> first"] },
+
+  { kind:"cheatsheet", tint:"a", icon:"star", part:"Recap · Cheat sheet 1", title:"Cheat sheet: inside def",
+    subtitle:"Stars in a def collect values.",
+    entries:[
+      {cmd:"def f(*args):", desc:"any number of values"},
+      {cmd:"args", desc:"a tuple: (1, 2, 3)"},
+      {cmd:"for x in args:", desc:"go through every value"},
+      {cmd:"sum(args), len(args)", desc:"built-ins work on it"},
+      {cmd:"def f(**kwargs):", desc:"any number of name=value"},
+      {cmd:"kwargs", desc:"a dictionary: {'a': 1}"},
+      {cmd:"for k, v in kwargs.items():", desc:"go through every pair"},
+      {cmd:"kwargs.get(\"x\", 0)", desc:"value, or 0 if not sent"},
+      {cmd:"def f(a, *args):", desc:"normal box first, extras after"},
+      {cmd:"def f(*args, b=0):", desc:"b must be sent by name"},
+      {cmd:"def f(a, *args, **kwargs):", desc:"the order rule"},
+      {cmd:"if not args:", desc:"nothing was sent"} ] },
+
+  { kind:"cheatsheet", tint:"b", icon:"box", part:"Recap · Cheat sheet 2", title:"Cheat sheet: when calling",
+    subtitle:"Stars in a call open things up.",
+    entries:[
+      {cmd:"f(1, 2, 3)", desc:"3 values into *args"},
+      {cmd:"f(a=1, b=2)", desc:"2 pairs into **kwargs"},
+      {cmd:"f(1, 2, a=3)", desc:"plain values first, then names"},
+      {cmd:"f(*nums)", desc:"open a list into values"},
+      {cmd:"f(**person)", desc:"open a dict into name=value"},
+      {cmd:"f(*a, *b)", desc:"open two lists in one call"},
+      {cmd:"print(*fruits)", desc:"items without brackets"},
+      {cmd:"print(*fruits, sep=\", \")", desc:"items with a comma between"},
+      {cmd:"first, *rest = nums", desc:"rest catches everything else"},
+      {cmd:"f(x=1, 2)", desc:"SyntaxError: wrong order"},
+      {cmd:"TypeError", desc:"too many, too few or unknown values"},
+      {cmd:"help(print)", desc:"see *args in a real function"} ] },
+
+  { kind:"remember", tint:"a", icon:"star", part:"Recap", title:"Five things to remember",
+    subtitle:"If you know these, today was a success.",
+    items:["*args collects any number of values into a tuple.",
+      "**kwargs collects any number of name=value pairs into a dictionary.",
+      "The star does the work. args and kwargs are just names.",
+      "Order: normal, *args, named-only, **kwargs. Two stars always last.",
+      "In a call, * opens a list and ** opens a dictionary."] },
+
+  { kind:"closing", tint:"a", icon:"message", part:"Day 11: Complete", title:"Great work today!",
+    subtitle:"Your functions can now take any number of values. Try adding *args to one old program every day." }
+];
+
+const icon = name => `<svg class="icon" aria-hidden="true"><use href="#${name}"></use></svg>`;
+const escapeHtml = value => value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function highlight(code){
+  const re = /(#[^\n]*)|("[^"\n]*"|'[^'\n]*')|\b(if|elif|else|match|case|for|while|in|not|and|or|del|def|return|print|import|from|as|True|False|None|pass|break|continue)\b|\b([A-Za-z_]\w*)(?=\()/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(code))){
+    const cls = m[1] ? "cm" : m[2] ? "str" : m[3] ? "kw" : "fn";
+    out += escapeHtml(code.slice(last, m.index)) + `<span class="${cls}">${escapeHtml(m[0])}</span>`;
+    last = re.lastIndex;
+  }
+  return out + escapeHtml(code.slice(last));
+}
+const codeBlock = code => `<div class="code-panel"><div class="code-label">${icon("code")} Python</div><pre><code>${highlight(String(code ?? ""))}</code></pre></div>`;
+const pageNo = index => `<span class="slide-number">${String(index+1).padStart(2,"0")} / ${String(slides.length).padStart(2,"0")}</span>`;
+const kicker = slide => `<div class="kicker"><span class="tag">${icon(slide.icon)}${slide.eyebrow || "Flexible functions"}</span>${slide.part ? `<span class="part">${slide.part}</span>` : ""}</div>`;
+const rowsList = (items, compact) => `<ul class="rows${compact ? " compact" : ""}">${items.map((t,i)=>`<li><span class="n">${String(i+1).padStart(2,"0")}</span><span class="t">${t}</span></li>`).join("")}</ul>`;
+
+/* Simple loop flowchart: check the condition, run the block, go back and check again. */
+function loopSvg(f, id){
+  const arrow = `arrow${id}`;
+  const two = Boolean(f.yes2);
+  const label = `Flowchart: check ${escapeHtml(f.q)}. If True, ${escapeHtml(f.yes)}${two ? `, then ${escapeHtml(f.yes2)}` : ""}, and go back to the check. If False, ${escapeHtml(f.end)}`;
+  const blockText = two
+    ? `<text x="180" y="175" text-anchor="middle" class="d-txt">${escapeHtml(f.yes)}</text><text x="180" y="197" text-anchor="middle" class="d-txt">${escapeHtml(f.yes2)}</text>`
+    : `<text x="180" y="185" text-anchor="middle" class="d-txt">${escapeHtml(f.yes)}</text>`;
+  return `<svg viewBox="0 0 360 300" role="img" aria-label="${label}">
+    <defs><marker id="${arrow}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="d-arrow"/></marker></defs>
+    <polygon points="180,10 292,62 180,114 68,62" class="d-q"/>
+    <text x="180" y="67" text-anchor="middle" class="d-qtxt">${escapeHtml(f.q)}</text>
+    <path d="M180 114 V145" class="d-line" marker-end="url(#${arrow})"/>
+    <text x="188" y="136" class="d-lbl t">TRUE</text>
+    <rect x="95" y="148" width="170" height="64" rx="8" class="d-yes"/>
+    ${blockText}
+    <path d="M95 180 H22 V62 H65" class="d-line" marker-end="url(#${arrow})"/>
+    <text x="28" y="54" class="d-lbl r">AGAIN</text>
+    <path d="M292 62 H338 V267 H268" class="d-line" marker-end="url(#${arrow})"/>
+    <text x="298" y="54" class="d-lbl f">FALSE</text>
+    <rect x="95" y="248" width="170" height="38" rx="19" class="d-end"/>
+    <text x="180" y="272" text-anchor="middle" class="d-txt">${escapeHtml(f.end)}</text>
+  </svg>`;
+}
+
+function renderSlide(slide, index){
+  const tintClass = slide.tint === "b" ? "b" : "";
+  let body;
+  if (slide.kind === "hero"){
+    body = `<div class="hero-body"><div class="mark">${icon(slide.icon)}</div><p class="p-label">${slide.eyebrow}</p><h1>${slide.title}</h1><p class="subtitle">${slide.subtitle}</p></div>${pageNo(index)}`;
+    return `<article class="slide" data-index="${index}" aria-hidden="${index===0?"false":"true"}"><div class="frame ${tintClass} on-dark"><div class="rule"></div><div style="height:calc(100% - 3px)">${body}</div></div></article>`;
+  }
+  if (slide.kind === "closing"){
+    body = `<div class="closing-body"><div class="mark">${icon(slide.icon)}</div><p class="p-label">${slide.part}</p><h1>${slide.title}</h1><p class="subtitle">${slide.subtitle}</p></div>${pageNo(index)}`;
+    return `<article class="slide" data-index="${index}" aria-hidden="true"><div class="frame ${tintClass} on-dark"><div class="rule"></div><div style="height:calc(100% - 3px)">${body}</div></div></article>`;
+  }
+  if (slide.kind === "divider"){
+    body = `<div class="divider-body"><span class="num">${slide.part.replace(/\D/g,"").padStart(2,"0")}</span><p class="p-label">${slide.part}</p><h1>${slide.title}</h1><p class="subtitle">${slide.subtitle}</p></div>${pageNo(index)}`;
+    return `<article class="slide" data-index="${index}" aria-hidden="true"><div class="frame ${tintClass} on-dark"><div class="rule"></div><div style="height:calc(100% - 3px)">${body}</div></div></article>`;
+  }
+
+  if (slide.kind === "bullets"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><div class="split">
+      <div><p class="subtitle">${slide.subtitle}</p>${slide.copy ? `<p class="copy">${slide.copy}</p>` : ""}</div>
+      <div>${rowsList(slide.rows)}</div>
+    </div>${pageNo(index)}</div>`;
+  } else if (slide.kind === "quote"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><div class="split wide-left">
+      <div><p class="subtitle">${slide.subtitle}</p>${rowsList(slide.rows, true)}</div>
+      <div class="quote"><p>${slide.quote}</p></div>
+    </div>${pageNo(index)}</div>`;
+  } else if (slide.kind === "code"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><div class="split code-wide">
+      <div><p class="subtitle">${slide.subtitle}</p>${slide.copy ? `<p class="copy">${slide.copy}</p>` : ""}</div>
+      ${codeBlock(slide.code)}
+    </div>${pageNo(index)}</div>`;
+  } else if (slide.kind === "diagram"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><div class="split code-wide">
+      <div class="diagram-side"><p class="subtitle">${slide.subtitle}</p><div class="diagram">${loopSvg(slide.flow, index)}</div>${slide.copy ? `<p class="copy">${slide.copy}</p>` : ""}</div>
+      ${codeBlock(slide.code)}
+    </div>${pageNo(index)}</div>`;
+  } else if (slide.kind === "steps"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><div class="split code-wide">
+      <div><p class="subtitle" style="margin-bottom:16px">${slide.subtitle}</p>${rowsList(slide.rows, true)}</div>
+      ${codeBlock(slide.code)}
+    </div>${pageNo(index)}</div>`;
+  } else if (slide.kind === "practice"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><div class="split code-wide">
+      <div class="practice-box"><h3>${slide.subtitle}</h3><p>${slide.task}</p></div>
+      ${codeBlock(slide.code)}
+    </div>${pageNo(index)}</div>`;
+  } else if (slide.kind === "cheatsheet"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><p class="subtitle" style="margin-bottom:10px">${slide.subtitle}</p>
+      <div class="cheatgrid">${slide.entries.map(e=>`<div class="cheatcard"><code>${escapeHtml(e.cmd)}</code><small>${e.desc}</small></div>`).join("")}</div>
+    ${pageNo(index)}</div>`;
+  } else if (slide.kind === "compare"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><p class="subtitle" style="margin-bottom:10px">${slide.subtitle}</p>
+      <div class="table-wrap"><table class="compare"><thead><tr>${slide.head.map(h=>`<th scope="col">${h}</th>`).join("")}</tr></thead>
+      <tbody>${slide.rows.map(r=>`<tr><th scope="row">${r[0]}</th>${r.slice(1).map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>
+    ${pageNo(index)}</div>`;
+  } else if (slide.kind === "parts"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><p class="subtitle">${slide.subtitle}</p>
+      <div class="anatomy"><div class="code-line"><code>${highlight(slide.code)}</code></div>
+      <div class="parts">${slide.parts.map(p=>`<div class="part-card"><small>${p.label}</small><code>${escapeHtml(p.code)}</code><p>${p.text}</p></div>`).join("")}</div></div>
+    ${pageNo(index)}</div>`;
+  } else if (slide.kind === "remember"){
+    body = `<div class="body">${kicker(slide)}<h2>${slide.title}</h2><p class="subtitle" style="margin-bottom:10px">${slide.subtitle}</p>
+      <div class="remember">${slide.items.map((t,i)=>`<div class="remember-item"><span class="n">${i+1}</span><p>${t}</p></div>`).join("")}</div>
+    ${pageNo(index)}</div>`;
+  }
+  return `<article class="slide" data-index="${index}" aria-hidden="${index===0?"false":"true"}"><div class="frame ${tintClass}"><div class="rule"></div>${body}</div></article>`;
+}
+
+const slidesRoot = document.getElementById("slides");
+slidesRoot.innerHTML = slides.map(renderSlide).join("");
+const pages = [...document.querySelectorAll(".slide")];
+const counter = document.getElementById("counter");
+const progress = document.getElementById("progress");
+const previousButton = document.getElementById("previousButton");
+const nextButton = document.getElementById("nextButton");
+let current = 0, startX = 0, startY = 0;
+
+function goTo(index, direction = 1, updateHash = true){
+  const target = Math.max(0, Math.min(slides.length - 1, index));
+  if (target === current && index !== 0) return;
+  pages.forEach((page, pageIndex) => {
+    page.classList.toggle("active", pageIndex === target);
+    page.classList.toggle("past", pageIndex < target && direction > 0);
+    page.setAttribute("aria-hidden", String(pageIndex !== target));
+  });
+  current = target;
+  counter.textContent = `${String(current+1).padStart(2,"0")} / ${String(slides.length).padStart(2,"0")}`;
+  progress.style.width = `${((current+1)/slides.length)*100}%`;
+  previousButton.disabled = current === 0;
+  nextButton.disabled = current === slides.length - 1;
+  if (updateHash) history.replaceState(null, "", `#slide-${current+1}`);
+}
+function next(){ goTo(current+1, 1); }
+function previous(){ goTo(current-1, -1); }
+
+document.getElementById("homeButton").addEventListener("click", () => goTo(0, -1));
+previousButton.addEventListener("click", previous);
+nextButton.addEventListener("click", next);
+async function toggleFullscreen(){
+  if (document.fullscreenElement) await document.exitFullscreen();
+  else await document.documentElement.requestFullscreen();
+}
+document.getElementById("fullButton").addEventListener("click", toggleFullscreen);
+document.addEventListener("keydown", event => {
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+  if (["ArrowRight","ArrowDown","PageDown"," ","Enter"].includes(event.key)) { event.preventDefault(); next(); }
+  if (["ArrowLeft","ArrowUp","PageUp","Backspace"].includes(event.key)) { event.preventDefault(); previous(); }
+  if (event.key === "Home") { event.preventDefault(); goTo(0, -1); }
+  if (event.key === "End") { event.preventDefault(); goTo(slides.length-1, 1); }
+  if (event.key === "f" || event.key === "F") { event.preventDefault(); toggleFullscreen(); }
+});
+slidesRoot.addEventListener("touchstart", event => { const t = event.changedTouches[0]; startX = t.clientX; startY = t.clientY; }, {passive:true});
+slidesRoot.addEventListener("touchend", event => { const t = event.changedTouches[0]; const x = t.clientX-startX, y = t.clientY-startY; if (Math.abs(x) > 48 && Math.abs(x) > Math.abs(y)) x < 0 ? next() : previous(); }, {passive:true});
+
+const requested = Number((location.hash.match(/slide-(\d+)/) || [])[1]);
+goTo(Number.isFinite(requested) && requested > 0 ? requested-1 : 0, 1, false);
+</script>
+</body>
+</html>
