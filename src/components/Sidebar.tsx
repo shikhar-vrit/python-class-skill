@@ -1,15 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  ChevronDown,
+  ChevronUp,
   ChevronsLeft,
   ChevronsRight,
   House,
   Layers,
+  Palmtree,
   X,
 } from "lucide-react";
 import { DAYS } from "@/lib/days";
+import { VACATIONS } from "@/lib/vacations";
 import { DayIcon } from "./DayIcon";
 import { cn } from "@/lib/cn";
 
@@ -22,6 +27,8 @@ interface Props {
 
 function Nav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
+  const [daysOpen, setDaysOpen] = useState(true);
+  const [vacationOpen, setVacationOpen] = useState(true);
   return (
     <nav className="flex-1 overflow-y-auto px-3 py-4 slim-scroll">
       <Link
@@ -40,12 +47,28 @@ function Nav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () =>
         {!collapsed && <span>Overview</span>}
       </Link>
 
-      {!collapsed && (
-        <p className="mb-2 mt-5 px-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
-          Days · {DAYS.length}
-        </p>
+      {!collapsed ? (
+        <button
+          onClick={() => setDaysOpen((v) => !v)}
+          aria-expanded={daysOpen}
+          aria-label={daysOpen ? "Collapse Days section" : "Expand Days section"}
+          title={daysOpen ? "Collapse Days" : "Expand Days"}
+          className="mb-2 mt-5 flex w-full items-center justify-between rounded-md px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+        >
+          <span>
+            Days · {DAYS.length}
+          </span>
+          {daysOpen ? (
+            <ChevronUp size={14} strokeWidth={2} />
+          ) : (
+            <ChevronDown size={14} strokeWidth={2} />
+          )}
+        </button>
+      ) : (
+        <div className="mb-2 mt-5" />
       )}
 
+      {(collapsed || daysOpen) && (
       <ul className="space-y-1">
         {DAYS.map((day) => {
           const active = pathname === day.route;
@@ -98,6 +121,86 @@ function Nav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () =>
           );
         })}
       </ul>
+      )}
+
+      {VACATIONS.length > 0 && (
+        <>
+          {!collapsed ? (
+            <button
+              onClick={() => setVacationOpen((v) => !v)}
+              aria-expanded={vacationOpen}
+              aria-label={vacationOpen ? "Collapse Vacation section" : "Expand Vacation section"}
+              title={vacationOpen ? "Collapse Vacation" : "Expand Vacation"}
+              className="mb-2 mt-5 flex w-full items-center justify-between rounded-md px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+            >
+              <span>
+                Vacation · {VACATIONS.length}
+              </span>
+              {vacationOpen ? (
+                <ChevronUp size={14} strokeWidth={2} />
+              ) : (
+                <ChevronDown size={14} strokeWidth={2} />
+              )}
+            </button>
+          ) : (
+            <div className="mx-3 my-4 h-px bg-stone-200" />
+          )}
+          {(collapsed || vacationOpen) && (
+          <ul className="space-y-1">
+            {VACATIONS.map((vac) => {
+              const active = pathname === vac.route;
+              return (
+                <li key={vac.id}>
+                  <Link
+                    href={vac.route}
+                    onClick={onNavigate}
+                    title={collapsed ? vac.fullTitle : undefined}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                      active
+                        ? "bg-stone-900 text-white"
+                        : "text-stone-600 hover:bg-stone-100 hover:text-stone-900",
+                      collapsed && "justify-center px-0"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+                        active
+                          ? "bg-white/15 text-white"
+                          : "bg-amber-100 text-amber-700 group-hover:bg-amber-200"
+                      )}
+                    >
+                      <Palmtree size={15} strokeWidth={1.8} />
+                    </span>
+                    {!collapsed && (
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium leading-tight">
+                          {vac.title}
+                        </span>
+                        <span
+                          className={cn(
+                            "block truncate text-xs leading-tight",
+                            active ? "text-stone-300" : "text-stone-400"
+                          )}
+                        >
+                          {vac.route}
+                        </span>
+                      </span>
+                    )}
+                    {!collapsed && (
+                      <span className={cn("ml-auto shrink-0", active ? "text-stone-300" : "text-stone-400")}>
+                        <DayIcon day={vac} size={16} />
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          )}
+        </>
+      )}
 
       {/* Hint box hidden — decks are now added routinely.
       {!collapsed && (

@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, Menu } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Menu, Palmtree } from "lucide-react";
 import { DAYS } from "@/lib/days";
+import { VACATIONS } from "@/lib/vacations";
 import { DayIcon } from "@/components/DayIcon";
 import { useNav } from "@/components/AppShell";
 
 export default function HomePage() {
   const { setMobileOpen } = useNav();
+  const [daysOpen, setDaysOpen] = useState(true);
+  const [vacationOpen, setVacationOpen] = useState(true);
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -28,14 +32,33 @@ export default function HomePage() {
       </header>
 
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-10">
-        <h2 className="font-serif text-3xl font-semibold tracking-tight">
-          Slide decks
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-serif text-3xl font-semibold tracking-tight">
+            Slide decks{" "}
+            <span className="align-middle font-sans text-sm font-medium text-stone-400">
+              · {DAYS.length}
+            </span>
+          </h2>
+          <button
+            onClick={() => setDaysOpen((v) => !v)}
+            aria-expanded={daysOpen}
+            aria-label={daysOpen ? "Collapse Slide decks section" : "Expand Slide decks section"}
+            title={daysOpen ? "Collapse" : "Expand"}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 bg-white text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900"
+          >
+            {daysOpen ? (
+              <ChevronUp size={17} strokeWidth={1.8} />
+            ) : (
+              <ChevronDown size={17} strokeWidth={1.8} />
+            )}
+          </button>
+        </div>
         <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-stone-500">
           One route per day. Each deck runs fullscreen in its own page — pick up
           where the class left off.
         </p>
 
+        {daysOpen && (
         <ul className="mt-8 space-y-3">
           {DAYS.map((day) => (
             <li key={day.id}>
@@ -66,12 +89,80 @@ export default function HomePage() {
             </li>
           ))}
         </ul>
+        )}
 
-        {DAYS.length === 0 && (
+        {DAYS.length === 0 && daysOpen && (
           <p className="mt-8 rounded-xl border border-dashed border-stone-300 bg-white p-6 text-sm text-stone-500">
             No decks found. Add <span className="font-mono">Day-01/slides/*.html</span> and
             run <span className="font-mono">npm run sync:slides</span>.
           </p>
+        )}
+
+        {VACATIONS.length > 0 && (
+          <>
+            <div className="mt-12 flex items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 font-serif text-3xl font-semibold tracking-tight">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                  <Palmtree size={19} strokeWidth={1.8} />
+                </span>
+                Vacation task{" "}
+                <span className="align-middle font-sans text-sm font-medium text-stone-400">
+                  · {VACATIONS.length}
+                </span>
+              </h2>
+              <button
+                onClick={() => setVacationOpen((v) => !v)}
+                aria-expanded={vacationOpen}
+                aria-label={vacationOpen ? "Collapse Vacation task section" : "Expand Vacation task section"}
+                title={vacationOpen ? "Collapse" : "Expand"}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-amber-700 transition-colors hover:bg-amber-100"
+              >
+                {vacationOpen ? (
+                  <ChevronUp size={17} strokeWidth={1.8} />
+                ) : (
+                  <ChevronDown size={17} strokeWidth={1.8} />
+                )}
+              </button>
+            </div>
+            <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-stone-500">
+              Dashain break decks from{" "}
+              <span className="font-mono text-[13px]">Vacation task/*.html</span> —
+              task and quiz in their own fullscreen pages.
+            </p>
+
+            {vacationOpen && (
+            <ul className="mt-8 space-y-3">
+              {VACATIONS.map((vac) => (
+                <li key={vac.id}>
+                  <Link
+                    href={vac.route}
+                    className="group flex items-center gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 transition-colors hover:border-amber-300 hover:bg-amber-100/60"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500 text-white">
+                      <Palmtree size={18} strokeWidth={1.8} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[15px] font-semibold tracking-tight">
+                        {vac.title}
+                      </span>
+                      <span className="block truncate font-mono text-xs text-stone-500">
+                        {vac.route} · {vac.source}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-stone-400">
+                      <DayIcon day={vac} />
+                    </span>
+                    <ArrowRight
+                      size={17}
+                      strokeWidth={1.8}
+                      className="shrink-0 text-stone-300 transition-transform group-hover:translate-x-0.5 group-hover:text-stone-500"
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            )}
+          </>
         )}
       </main>
     </div>

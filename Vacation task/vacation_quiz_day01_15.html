@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashain Quiz — Day 01 to 15</title>
+<style>
+  :root{
+    --bg:#f6f2ea; --paper:#fffdf8; --ink:#221f1a; --muted:#726b5e; --line:#e6ddc9; --soft-ink:#3c362d;
+    --a:#b1502e; --a-soft:#f3ded0;
+    --b:#2f5d52; --b-soft:#dfe9e2;
+    --dark:#201d19; --dark-ink:#f4efe4;
+    --code-bg:#1c1815; --code-fg:#efe8db; --code-kw:#8fd6c4; --code-str:#e9b483; --code-cm:#8a8277; --code-fn:#e7cd8f;
+    --shadow:0 18px 44px rgba(24,17,8,.14), 0 3px 10px rgba(24,17,8,.07);
+    --serif: ui-serif, Georgia, "Iowan Old Style", "Times New Roman", serif;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#181512; --paper:#231f1b; --ink:#f1ebdf; --muted:#a59d8e; --line:#3a342d; --soft-ink:#d9d1c3;
+      --a:#e3825c; --a-soft:#3b281f; --b:#73b8a5; --b-soft:#1d302a;
+      --shadow:0 18px 44px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100dvh;}
+  button{font:inherit;color:inherit;}
+  code{font-family:var(--mono);font-size:.92em;color:var(--a);}
+
+  .wrap{width:min(1080px,100%);margin:0 auto;padding:22px 16px 60px;}
+  header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
+  .mark{width:40px;height:40px;display:grid;place-items:center;border:1.5px solid var(--a);color:var(--a);border-radius:8px;font-family:var(--serif);font-weight:700;}
+  header.top h1{margin:0;font-family:var(--serif);font-weight:600;font-size:clamp(24px,3.4vw,34px);line-height:1.05;}
+  header.top p{margin:3px 0 0;color:var(--muted);font-family:var(--serif);font-style:italic;font-size:15px;}
+
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:12px;margin-bottom:18px;}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .row .label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:4px;min-width:42px;}
+  .chip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;color:var(--soft-ink);}
+  .chip small{color:var(--muted);font-weight:500;margin-left:4px;}
+  .chip[aria-pressed="true"]{background:var(--a);border-color:var(--a);color:var(--paper);}
+  .chip[aria-pressed="true"] small{color:rgba(255,255,255,.8);}
+  .spacer{flex:1;}
+  .btn{border:1px solid var(--line);background:var(--paper);border-radius:7px;padding:8px 13px;font-size:13.5px;font-weight:600;cursor:pointer;}
+  .btn:hover,.chip:hover{border-color:var(--a);}
+  .btn.primary{background:var(--b);border-color:var(--b);color:var(--paper);}
+  .btn:disabled{opacity:.4;cursor:default;}
+  .tabs{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;}
+  .tabs button{border:0;background:transparent;padding:8px 14px;font-size:13.5px;font-weight:700;cursor:pointer;color:var(--muted);}
+  .tabs button[aria-selected="true"]{background:var(--ink);color:var(--paper);}
+  .toggle{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:600;color:var(--soft-ink);cursor:pointer;}
+  .toggle input{width:16px;height:16px;accent-color:var(--b);}
+
+  /* class mode */
+  .card{background:var(--paper);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;}
+  .card .rule{height:4px;background:var(--a);}
+  .card-body{padding:clamp(20px,3.6vw,40px);}
+  .card-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+  .tag{display:inline-flex;padding:5px 11px;border:1px solid var(--a);color:var(--a);border-radius:999px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;}
+  .qcount{color:var(--muted);font-size:12.5px;font-weight:700;letter-spacing:.06em;}
+  .question{margin:0 0 16px;font-family:var(--serif);font-weight:600;font-size:clamp(21px,2.9vw,32px);line-height:1.2;}
+  pre.code{margin:0 0 18px;padding:16px 20px;background:var(--code-bg);color:var(--code-fg);border-radius:7px;font-family:var(--mono);font-size:clamp(14px,1.7vw,19px);line-height:1.55;overflow-x:auto;white-space:pre;}
+  pre.code code{color:inherit;font-size:inherit;}
+  .kw{color:var(--code-kw);} .fn{color:var(--code-fn);} .str{color:var(--code-str);} .cm{color:var(--code-cm);font-style:italic;}
+  .options{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .opt{display:flex;gap:12px;align-items:center;text-align:left;border:1.5px solid var(--line);background:var(--paper);border-radius:8px;padding:13px 15px;cursor:pointer;font-size:clamp(15px,1.7vw,18px);line-height:1.35;min-height:58px;}
+  .opt:hover:not(:disabled){border-color:var(--a);}
+  .opt:disabled{cursor:default;}
+  .opt .letter{flex-shrink:0;width:30px;height:30px;display:grid;place-items:center;border-radius:6px;background:var(--bg);font-weight:800;font-size:14px;color:var(--muted);}
+  .opt.correct{border-color:var(--b);background:var(--b-soft);}
+  .opt.correct .letter{background:var(--b);color:var(--paper);}
+  .opt.wrong{border-color:var(--a);background:var(--a-soft);}
+  .opt.wrong .letter{background:var(--a);color:var(--paper);}
+  .opt.dim{opacity:.55;}
+  .explain{margin-top:16px;border-left:3px solid var(--b);background:var(--b-soft);padding:14px 18px;border-radius:0 7px 7px 0;font-size:clamp(15px,1.6vw,17px);line-height:1.5;}
+  .explain strong{color:var(--b);}
+  .nav{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:20px;flex-wrap:wrap;}
+  .score{font-size:13.5px;font-weight:700;color:var(--muted);}
+  .score b{color:var(--b);}
+  .progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:14px;}
+  .progress span{display:block;height:100%;background:var(--a);width:0;transition:width .25s ease;}
+  .hint{margin-top:12px;color:var(--muted);font-size:12px;text-align:center;}
+  .summary{text-align:center;padding:clamp(30px,6vw,60px) 20px;}
+  .summary .big{font-family:var(--serif);font-size:clamp(54px,9vw,96px);font-weight:600;color:var(--b);line-height:1;}
+  .summary h2{font-family:var(--serif);font-weight:600;font-size:clamp(22px,3vw,30px);margin:14px 0 6px;}
+  .summary p{color:var(--muted);margin:0 0 22px;}
+  .summary .row{justify-content:center;}
+
+  /* answer sheet */
+  .sheet{display:flex;flex-direction:column;gap:12px;}
+  .sq{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:16px 18px;break-inside:avoid;}
+  .sq-head{display:flex;gap:10px;align-items:baseline;margin-bottom:8px;}
+  .sq-num{font-family:var(--serif);font-weight:700;color:var(--a);font-size:17px;flex-shrink:0;}
+  .sq-q{font-family:var(--serif);font-weight:600;font-size:17px;line-height:1.3;flex:1;}
+  .sq-day{flex-shrink:0;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .sq pre.code{font-size:13.5px;padding:11px 14px;margin:0 0 10px;}
+  .sq ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;}
+  .sq li{font-size:14.5px;padding:3px 0;color:var(--soft-ink);}
+  .sq li b{display:inline-block;width:22px;color:var(--muted);}
+  .show-answers .sq li.is-answer{color:var(--b);font-weight:700;}
+  .show-answers .sq li.is-answer b{color:var(--b);}
+  .sq .sq-ex{display:none;margin-top:8px;font-size:13.5px;color:var(--muted);line-height:1.45;}
+  .show-answers .sq .sq-ex{display:block;}
+  .key{display:none;}
+  .show-answers .key{display:block;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:14px 18px;margin-top:6px;}
+  .key h3{margin:0 0 8px;font-family:var(--serif);font-size:18px;}
+  .key p{margin:0;font-family:var(--mono);font-size:13.5px;line-height:1.8;color:var(--soft-ink);}
+
+  @media (max-width:700px){
+    .options,.sq ol{grid-template-columns:1fr;}
+    .spacer{display:none;}
+  }
+  @media print{
+    body{background:#fff;color:#000;}
+    .panel,.no-print{display:none!important;}
+    .wrap{padding:0;}
+    .sq{border-color:#ccc;}
+    pre.code{background:#f3f0ea;color:#111;border:1px solid #ddd;}
+    .kw,.fn,.str,.cm{color:#111;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <span class="mark">Py</span>
+    <div>
+      <h1>Dashain Quiz: Day 01 to Day 15</h1>
+      <p>Everything from Day 01 to Day 15. Pick the days, then quiz the class one question at a time, or print a worksheet.</p>
+    </div>
+  </header>
+
+  <section class="panel" aria-label="Quiz settings">
+    <div class="row" id="dayChips"><span class="label">Days</span></div>
+    <div class="row">
+      <span class="label">Mode</span>
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tabClass" aria-selected="true">Class mode</button>
+        <button role="tab" id="tabSheet" aria-selected="false">Answer sheet</button>
+      </div>
+      <span class="spacer"></span>
+      <button class="btn" id="btnAll" title="All chosen questions, in order">All in order</button>
+      <button class="btn" id="btnShuffle" title="Mix up the order">Shuffle</button>
+      <button class="btn primary" id="btnRandom" title="15 random questions from the chosen days">Random 15</button>
+    </div>
+  </section>
+
+  <main id="classView"></main>
+  <main id="sheetView" hidden></main>
+</div>
+
+<script>
+/* Every question lists the correct option first. The page mixes the options when it shows them. */
+const DAYS = {
+  1:"Python intro & venv", 2:"Git & GitHub", 3:"Numbers & strings", 4:"Lists",
+  5:"Tuples & sets", 6:"Dictionaries", 7:"if / else", 8:"Loops",
+  9:"Your own functions", 10:"Built-in functions", 11:"*args & **kwargs", 12:"Lambda",
+  13:"Revision mix", 14:"Decorators, recursion, generators", 15:"Exceptions"
+};
+const QUESTIONS = [
+  /* ───── Day 01 ───── */
+  {d:1, q:"Which file extension do Python files use?", o:["`.py`","`.pt`","`.python`","`.txt`"], e:"Save your code as hello.py, then run it with `python hello.py`."},
+  {d:1, q:"Python is an interpreted language. What does that mean?", o:["Python reads and runs your code directly, no .exe needed","It only works on the internet","It translates English into Nepali","You must build a .exe file before running"], e:"The interpreter (CPython) reads your code and runs it straight away."},
+  {d:1, q:"After you activate a virtual environment, what appears at the start of the terminal line?", o:["`(.venv)`","`>>>`","`$$`","`#venv`"], e:"(.venv) tells you the environment is active. Check it before running pip install."},
+  {d:1, q:"On Windows, which command activates .venv?", o:["`.venv\\Scripts\\activate`","`source .venv/bin/activate`","`activate .venv`","`python .venv`"], e:"`source .venv/bin/activate` is the macOS / Linux version."},
+  {d:1, q:"Which command shows the packages installed in your venv?", o:["`pip list`","`pip show-all`","`python list`","`git log`"], e:"pip list shows every package and its version."},
+  {d:1, q:"You see `>>>` in the terminal. Where are you?", o:["In the Python REPL, ready for one line of code","In a Git commit message","Inside a broken program","In the virtual environment folder"], e:"REPL = Read, Evaluate, Print, Loop. Type `exit()` to leave it."},
+  {d:1, q:"Two projects need different versions of the same package. What solves this?", o:["A separate virtual environment for each project","Installing Python twice on one folder","Using a bigger computer","Putting both projects on GitHub"], e:"Each venv has its own private packages, so the projects don't fight."},
+
+  /* ───── Day 02 ───── */
+  {d:2, q:"What is the right order to save a change with Git?", o:["Edit the file → `git add` → `git commit`","`git commit` → edit → `git add`","`git push` → `git add` → edit","`git init` every time → `git push`"], e:"add stages the file. commit saves the snapshot."},
+  {d:2, q:"Which command downloads new commits from GitHub into your folder?", o:["`git pull`","`git push`","`git init`","`git add .`"], e:"pull brings changes down. push sends your commits up."},
+  {d:2, q:"What does `git add .` do?", o:["Stages every changed file in this folder","Deletes all files","Creates a new repo","Pushes to GitHub"], e:"The dot means: everything in this folder."},
+  {d:2, q:"You finished work on a branch called feature. How do you bring it into main?", o:["`git switch main` then `git merge feature`","`git push feature main`","`git delete feature`","`git clone feature`"], e:"Go to the branch that receives the work, then merge the other branch in."},
+  {d:2, q:"What does `git remote add origin <url>` do?", o:["Links your local repo to a GitHub repo","Downloads a repo","Creates a branch called origin","Makes a commit"], e:"origin is the usual nickname for your GitHub copy."},
+  {d:2, q:"Which command tells Git the name to put on your commits?", o:['`git config --global user.name "Sita"`','`git name "Sita"`','`git user Sita`','`gh auth login Sita`'], e:"Do the same with user.email. You only need to do this once."},
+  {d:2, q:"Why do we put `.venv/` in .gitignore?", o:["It is big, and anyone can rebuild it with pip","GitHub can't store folders","It holds your GitHub password","Git deletes it otherwise"], e:"Share your code, not your installed packages."},
+
+  /* ───── Day 03 ───── */
+  {d:3, q:"What does this print?", code:`print(10 / 4)`, o:["2.5","2","2.0","3"], e:"/ always gives a float. Use // for a whole number."},
+  {d:3, q:"What does this print?", code:`print(int("7") + 3)`, o:["10","73","Error","7 + 3"], e:"int() turns the text \"7\" into the number 7 first."},
+  {d:3, q:"What does this print?", code:`print("ab" * 3)`, o:["ababab","ab3","Error","ab ab ab"], e:"A string times a number repeats the string."},
+  {d:3, q:"What does this print?", code:`word = "Dashain"\nprint(word[-3:])`, o:["ain","Das","hai","n"], e:"-3 means three from the end. No stop number means: go to the end."},
+  {d:3, q:"What does this print?", code:`print("happy dashain".title())`, o:["Happy Dashain","HAPPY DASHAIN","Happy dashain","happy dashain"], e:".title() makes the first letter of every word a capital."},
+  {d:3, q:"What does this print?", code:`print(type(5 > 3))`, o:["<class 'bool'>","<class 'int'>","True","<class 'str'>"], e:"A comparison always gives True or False, which is a bool."},
+  {d:3, q:"What does this print?", code:`print(len("Dashain 2026"))`, o:["12","11","10","7"], e:"The space counts as a character too."},
+  {d:3, q:"What does this print?", code:`x = 5\nx *= 2\nx -= 3\nprint(x)`, o:["7","10","4","2"], e:"5 × 2 = 10, then 10 − 3 = 7."},
+  {d:3, q:"What does this print?", code:`print("momo".replace("m", "M"))`, o:["MoMo","Momo","momo","MOMO"], e:"replace() changes every match, not just the first one."},
+
+  /* ───── Day 04 ───── */
+  {d:4, q:"What does this print?", code:`nums = [4, 8, 15, 16, 23]\nprint(nums[-2])`, o:["16","8","23","15"], e:"-1 is the last item, -2 is the one before it."},
+  {d:4, q:"What does this print?", code:`nums = [1, 2, 3, 4, 5, 6]\nprint(nums[::2])`, o:["[1, 3, 5]","[2, 4, 6]","[1, 2]","[1, 2, 3]"], e:"A step of 2 takes every second item, starting at index 0."},
+  {d:4, q:"What does this print?", code:`a = [1, 2]\na.append([3, 4])\nprint(a)`, o:["[1, 2, [3, 4]]","[1, 2, 3, 4]","[3, 4, 1, 2]","Error"], e:"append() adds ONE item, here a whole list. Use extend() to add 3 and 4 one by one."},
+  {d:4, q:"What does this print?", code:`nums = [5, 2, 9]\nnums.reverse()\nprint(nums)`, o:["[9, 2, 5]","[9, 5, 2]","[2, 5, 9]","[5, 2, 9]"], e:"reverse() flips the order. It does not sort."},
+  {d:4, q:"What does this print?", code:`colors = ["red", "blue", "red"]\nprint(colors.count("red"))`, o:["2","1","3","0"], e:"count() tells you how many times an item appears."},
+  {d:4, q:"What does this print?", code:`x = [3, 1, 2]\ny = x.sort()\nprint(y)`, o:["None","[1, 2, 3]","[3, 1, 2]","Error"], e:".sort() changes the list in place and gives back None."},
+  {d:4, q:"What does this print?", code:`a = [1, 2]\nb = a.copy()\nb.append(3)\nprint(a)`, o:["[1, 2]","[1, 2, 3]","[3]","Error"], e:".copy() makes a real new list, so a doesn't change."},
+  {d:4, q:"What does this print?", code:`nums = [10, 20, 30]\nnums.remove(20)\nprint(nums)`, o:["[10, 30]","[10, 20]","[20, 30]","[10, 20, 30]"], e:"remove() deletes by value. pop() deletes by position."},
+
+  /* ───── Day 05 ───── */
+  {d:5, q:"What does this print?", code:`t = (10, 20, 30, 20)\nprint(t.count(20))`, o:["2","1","20","3"], e:"count() is one of the only two tuple methods."},
+  {d:5, q:"What does this print?", code:`t = ("a", "b", "c")\nprint(t.index("c"))`, o:["2","3","1","c"], e:"index() gives the position. Counting starts at 0."},
+  {d:5, q:"What does this print?", code:`print(type((5,)))`, o:["<class 'tuple'>","<class 'int'>","<class 'list'>","Error"], e:"The comma makes the tuple, not the brackets."},
+  {d:5, q:"What does this print?", code:`a = {1, 2, 3}\nb = {3, 4}\nprint(a ^ b)`, o:["{1, 2, 4}","{3}","{1, 2, 3, 4}","{4}"], e:"^ gives items in one set or the other, but not both."},
+  {d:5, q:"What does this print?", code:`s = {1, 2}\ns.add(2)\ns.add(3)\nprint(len(s))`, o:["3","4","2","Error"], e:"2 is already in the set, so adding it again does nothing."},
+  {d:5, q:"What does this print?", code:`a = {1, 2}\nb = {1, 2, 3}\nprint(a.issubset(b))`, o:["True","False","{1, 2}","Error"], e:"Every item of a is also in b, so a is a subset of b."},
+  {d:5, q:"Which of these can you change after you make it?", o:["A set","A tuple","A frozenset","A string"], e:"Sets can add and remove items. Tuples, frozensets and strings are locked."},
+  {d:5, q:"What does this print?", code:`x, y = 1, 2\nx, y = y, x\nprint(x, y)`, o:["2 1","1 2","2 2","Error"], e:"Packing and unpacking: the right side makes a tuple (2, 1), then it is unpacked."},
+
+  /* ───── Day 06 ───── */
+  {d:6, q:"What does this print?", code:`d = {"a": 1, "b": 2}\nprint(list(d.keys()))`, o:["['a', 'b']","[1, 2]","[('a', 1), ('b', 2)]","{'a', 'b'}"], e:"keys() gives only the keys."},
+  {d:6, q:"What does this print?", code:`d = {"x": 1, "y": 2}\ndel d["x"]\nprint(d)`, o:["{'y': 2}","{'x': 1}","{}","Error"], e:"del removes that key and its value."},
+  {d:6, q:"What does this print?", code:`d = dict.fromkeys(["a", "b"], 0)\nprint(d)`, o:["{'a': 0, 'b': 0}","{'a': 'b'}","['a', 'b', 0]","{0: ['a', 'b']}"], e:"fromkeys() makes a new dictionary where every key gets the same value."},
+  {d:6, q:"What does this print?", code:`a = {"x": 1}\nb = {"x": 5, "y": 2}\nprint(a | b)`, o:["{'x': 5, 'y': 2}","{'x': 1, 'y': 2}","{'x': 1}","Error"], e:"| joins the two. When a key is in both, the right side wins."},
+  {d:6, q:"What does this print?", code:`menu = {"tea": 40, "momo": 150}\nprint(40 in menu)`, o:["False","True","40","Error"], e:"in checks the keys, not the values. Use `40 in menu.values()` to check values."},
+  {d:6, q:"What does this print?", code:`menu = {"tea": 40, "momo": 150}\nprint(sum(menu.values()))`, o:["190","2","Error","40150"], e:"values() gives 40 and 150. sum() adds them."},
+  {d:6, q:"What does this print?", code:`d = {}\nd.setdefault("count", 0)\nprint(d)`, o:["{'count': 0}","{}","0","Error"], e:"setdefault() adds the key with that value only if the key is missing."},
+  {d:6, q:"What does this print?", code:`keys = ["a", "b"]\nvals = [1, 2]\nd = dict(zip(keys, vals))\nprint(d["b"])`, o:["2","1","b","Error"], e:"zip() pairs a with 1 and b with 2. dict() turns the pairs into a dictionary."},
+
+  /* ───── Day 07 ───── */
+  {d:7, q:"What does this print?", code:`x = 10\nif x > 5 and x < 8:\n    print("A")\nelif x > 5 or x < 0:\n    print("B")\nelse:\n    print("C")`, o:["B","A","C","A and B"], e:"x < 8 is False, so the and fails. In the elif, x > 5 is True, so or passes."},
+  {d:7, q:"What does this print?", code:`name = ""\nif name:\n    print("Hi", name)\nelse:\n    print("No name")`, o:["No name","Hi","Hi No name","Error"], e:"An empty string counts as False."},
+  {d:7, q:"What does this print?", code:`print(5 != 5)`, o:["False","True","5","Error"], e:"!= means not equal. 5 is equal to 5, so the answer is False."},
+  {d:7, q:"What does this print?", code:`day = "Dashami"\nmatch day:\n    case "Fulpati":\n        print("Day 7")\n    case "Dashami":\n        print("Tika day")\n    case _:\n        print("Other day")`, o:["Tika day","Day 7","Other day","Nothing"], e:"match-case runs the first case that matches."},
+  {d:7, q:"What does this print?", code:`age = 20\nmember = False\nif age >= 18:\n    if member:\n        print("Free")\n    else:\n        print("Rs 100")`, o:["Rs 100","Free","Nothing","Error"], e:"The outer if is True. Inside it, member is False, so the inner else runs."},
+  {d:7, q:"Which of these values counts as False in an if?", o:["`0`",'`"0"`',"`[0]`","`-1`"], e:"0, empty text, empty lists and None are False. \"0\" is text that is not empty, so it is True."},
+  {d:7, q:"What does this print?", code:`marks = 95\nif marks >= 40:\n    print("Pass")\nelif marks >= 90:\n    print("Top")\nelse:\n    print("Fail")`, o:["Pass","Top","Pass and Top","Fail"], e:"Only the first True block runs. Put the hardest condition (>= 90) first."},
+  {d:7, q:"What does this print?", code:`print(not 0)`, o:["True","False","0","Error"], e:"0 is False, so not 0 is True."},
+
+  /* ───── Day 08 ───── */
+  {d:8, q:"Which numbers does `range(10, 0, -3)` give?", o:["10 7 4 1","10 7 4 1 0","10 7 4","9 6 3"], e:"Start at 10, go down by 3, stop before 0."},
+  {d:8, q:"What does this print?", code:`n = 1\nwhile n < 20:\n    n *= 3\nprint(n)`, o:["27","9","20","81"], e:"1 → 3 → 9 → 27. 27 is not less than 20, so the loop stops."},
+  {d:8, q:"What does this print?", code:`count = 0\nfor i in range(3):\n    for j in range(2):\n        count += 1\nprint(count)`, o:["6","5","3","2"], e:"The inner loop runs 2 times for each of the 3 outer rounds: 3 × 2 = 6."},
+  {d:8, q:"What does this print?", code:`for n in [3, 8, 5, 12]:\n    if n > 6:\n        print(n)\n        break`, o:["8","8 and 12","12","3"], e:"break stops the loop at the first number bigger than 6."},
+  {d:8, q:"What does this print? (one per line)", code:`for k, v in {"a": 1, "b": 2}.items():\n    print(k, v)`, o:["a 1, b 2","a, b","1, 2","('a', 1), ('b', 2)"], e:"items() gives a key and a value together on each round."},
+  {d:8, q:"What does this print?", code:`total = 0\nfor i in range(1, 5):\n    if i % 2 == 0:\n        continue\n    total += i\nprint(total)`, o:["4","10","6","0"], e:"Even numbers are skipped. 1 + 3 = 4."},
+  {d:8, q:"You want to keep asking until the user types quit. Which loop fits best?", o:["`while True` with a `break`","`for i in range(10)`","A for loop over a list","No loop is needed"], e:"You don't know how many rounds it will take, so use while."},
+  {d:8, q:"What does this print? (one per line)", code:`for ch in "abc":\n    print(ch.upper())`, o:["A, B, C","abc","ABC","a, b, c"], e:"A string is a group of letters. The loop takes one letter at a time."},
+
+  /* ───── Day 09 ───── */
+  {d:9, q:"What does this print?", code:`def add(a, b=10):\n    return a + b\n\nprint(add(5))`, o:["15","5","10","Error"], e:"b was not sent, so its default value 10 is used."},
+  {d:9, q:"What does this print? (one per line)", code:`def hello():\n    print("Hi")\n\nx = hello()\nprint(x)`, o:["Hi, None","Hi, Hi","None","Hi"], e:"hello() prints Hi but returns nothing, so x is None."},
+  {d:9, q:"What does this print?", code:`def double(x):\n    return x * 2\n    print("Done")\n\nprint(double(4))`, o:["8","8 and Done","Done","Error"], e:"return ends the function. The print after it never runs."},
+  {d:9, q:"What does this print?", code:`def low_high(nums):\n    return min(nums), max(nums)\n\nprint(low_high([4, 9, 1]))`, o:["(1, 9)","[1, 9]","1 9","Error"], e:"Returning two values gives a tuple."},
+  {d:9, q:"What does this print?", code:`x = 5\n\ndef change():\n    x = 10\n\nchange()\nprint(x)`, o:["5","10","None","Error"], e:"The x inside the function is local. The outside x does not change."},
+  {d:9, q:"What does this print?", code:`def greet(name, msg):\n    return f"{msg} {name}"\n\nprint(greet(msg="Namaste", name="Sita"))`, o:["Namaste Sita","Sita Namaste","msg name","Error"], e:"With name=value, the order you send them in doesn't matter."},
+  {d:9, q:"In `def area(w, h):`, what are w and h called?", o:["Parameters","Arguments","Return values","Decorators"], e:"Parameters are the boxes in the def. Arguments are the values you send when you call it."},
+  {d:9, q:"What happens when you run this?", code:`say_hi()\n\ndef say_hi():\n    print("Hi")`, o:["NameError: say_hi is not defined yet","It prints Hi","It prints nothing","SyntaxError"], e:"Python reads from top to bottom. Define the function first, then call it."},
+
+  /* ───── Day 10 ───── */
+  {d:10, q:"What does this print?", code:`print(abs(-7), round(3.14159, 2))`, o:["7 3.14","-7 3.14","7 3.1","7 3"], e:"abs() removes the minus. round(x, 2) keeps 2 decimals."},
+  {d:10, q:"What does this print?", code:`print(divmod(17, 5))`, o:["(3, 2)","(2, 3)","3.4","(3, 5)"], e:"divmod gives (17 // 5, 17 % 5)."},
+  {d:10, q:"What does this print?", code:`print(sorted([3, 1, 2], reverse=True))`, o:["[3, 2, 1]","[1, 2, 3]","[2, 1, 3]","None"], e:"reverse=True sorts from big to small."},
+  {d:10, q:"What does this print?", code:`print(list(enumerate(["a", "b"], start=1)))`, o:["[(1, 'a'), (2, 'b')]","[(0, 'a'), (1, 'b')]","['a', 'b']","[1, 2]"], e:"enumerate() numbers each item. start=1 begins counting at 1."},
+  {d:10, q:"What does this print?", code:`print(any([0, "", 5]), all([1, 2, 0]))`, o:["True False","False True","True True","False False"], e:"any: at least one True (5). all: every one True, but 0 is False."},
+  {d:10, q:"What does this print?", code:`print(max(["kiwi", "banana", "fig"], key=len))`, o:["banana","kiwi","fig","6"], e:"key=len compares by length, so the longest word wins."},
+  {d:10, q:"What does this print?", code:`print("a", "b", "c", sep="-")`, o:["a-b-c","a b c","abc-","a- b- c"], e:"sep is what goes between the values. The default is a space."},
+  {d:10, q:"What does this print?", code:`print(list(zip([1, 2, 3], ["a", "b"])))`, o:["[(1, 'a'), (2, 'b')]","[(1, 'a'), (2, 'b'), (3, None)]","Error","[1, 'a', 2, 'b', 3]"], e:"zip() stops when the shorter list runs out."},
+  {d:10, q:"What does this print?", code:`print(int(9.99), isinstance(5, int))`, o:["9 True","10 True","9.99 True","10 False"], e:"int() cuts off the decimals. It does not round."},
+
+  /* ───── Day 11 ───── */
+  {d:11, q:"What does this print?", code:`def f(*args):\n    print(type(args))\n\nf(1, 2, 3)`, o:["<class 'tuple'>","<class 'list'>","<class 'dict'>","<class 'int'>"], e:"*args collects the values into a tuple."},
+  {d:11, q:"What does this print?", code:`def total(*nums):\n    return sum(nums)\n\nprint(total(1, 2, 3, 4))`, o:["10","4","(1, 2, 3, 4)","Error"], e:"nums is a tuple, so sum() works on it."},
+  {d:11, q:"What does this print?", code:`def f(**kwargs):\n    print(kwargs)\n\nf(a=1, b=2)`, o:["{'a': 1, 'b': 2}","(1, 2)","['a', 'b']","a=1 b=2"], e:"**kwargs collects name=value pairs into a dictionary."},
+  {d:11, q:"What does this print?", code:`def greet(greeting, *names):\n    print(greeting, names)\n\ngreet("Hi", "Ram", "Sita")`, o:["Hi ('Ram', 'Sita')","Hi Ram Sita","('Hi', 'Ram', 'Sita')","Error"], e:"The normal box takes the first value. *names takes the rest."},
+  {d:11, q:"What does this print?", code:`nums = [1, 2, 3]\nprint(*nums)`, o:["1 2 3","[1, 2, 3]","(1, 2, 3)","123"], e:"* opens the list, so print() gets three separate values."},
+  {d:11, q:"What does this print?", code:`first, *rest = (1, 2, 3, 4)\nprint(rest)`, o:["[2, 3, 4]","(2, 3, 4)","1","[1, 2, 3, 4]"], e:"The star catches everything left over, as a list."},
+  {d:11, q:"Which def has the parts in the right order?", o:["`def f(a, *args, **kwargs):`","`def f(**kwargs, *args):`","`def f(*args, **kwargs, a):`","`def f(**kwargs, a):`"], e:"Normal boxes, then *args, then **kwargs. Two stars always go last."},
+  {d:11, q:"What does this print?", code:`def info(name, age):\n    return f"{name} is {age}"\n\nd = {"name": "Ram", "age": 20}\nprint(info(**d))`, o:["Ram is 20","name is age","Error","{'name': 'Ram'} is 20"], e:"** opens the dictionary. Each key goes into the box with the same name."},
+  {d:11, q:"What does this print?", code:`def f(a, *args, b=0):\n    print(a, args, b)\n\nf(1, 2, 3)`, o:["1 (2, 3) 0","1 (2,) 3","1 2 3","Error"], e:"After *args, b can only be filled by name. Here it keeps its default 0."},
+
+  /* ───── Day 12 ───── */
+  {d:12, q:"What does this print?", code:`square = lambda x: x * x\nprint(square(6))`, o:["36","12","66","Error"], e:"A lambda is a one-line function. x * x for 6 is 36."},
+  {d:12, q:"What does this print?", code:`add = lambda a, b=2: a + b\nprint(add(3))`, o:["5","3","Error","32"], e:"A lambda can have default values too."},
+  {d:12, q:"What does this print?", code:`print(list(map(lambda x: x + 1, [1, 2, 3])))`, o:["[2, 3, 4]","[1, 2, 3]","[3]","Error"], e:"map() runs the lambda on every item."},
+  {d:12, q:"What does this print?", code:`print(list(filter(lambda x: x % 2 == 0, [1, 2, 3, 4])))`, o:["[2, 4]","[1, 3]","[False, True, False, True]","[1, 2, 3, 4]"], e:"filter() keeps only the items where the lambda gives True."},
+  {d:12, q:"What does this print?", code:`words = ["tea", "momo", "sel"]\nprint(sorted(words, key=lambda w: w[-1]))`, o:["['tea', 'sel', 'momo']","['momo', 'sel', 'tea']","['sel', 'tea', 'momo']","['tea', 'momo', 'sel']"], e:"Sort by the last letter: a, l, o."},
+  {d:12, q:"What does this print?", code:`check = lambda n: "even" if n % 2 == 0 else "odd"\nprint(check(7))`, o:["odd","even","True","Error"], e:"A one-line if ... else works inside a lambda."},
+  {d:12, q:"What does this print?", code:`students = [("Ram", 80), ("Sita", 95)]\nprint(max(students, key=lambda s: s[1])[0])`, o:["Sita","Ram","95","('Sita', 95)"], e:"key picks the mark to compare. [0] then takes the name from the winner."},
+  {d:12, q:"Why do we write `list(map(...))`?", o:["map() gives a map object, and list() turns it into a list we can see","map() only works inside a list","list() makes it faster","It's not needed: map() already gives a list"], e:"Printing map() directly shows something like <map object at 0x...>."},
+  {d:12, q:"Which of these can a lambda NOT have?", o:["Several lines with statements like for or return","Two inputs","A default value","A one-line if ... else"], e:"A lambda is one expression. For bigger jobs, use def."},
+
+  /* ───── Day 13 · revision mix ───── */
+  {d:13, q:"What does this print?", code:`cart = {"momo": 2, "tea": 3}\ntotal = 0\nfor item, qty in cart.items():\n    if item == "tea":\n        continue\n    total += qty\nprint(total)`, o:["2","5","3","0"], e:"Dictionary + loop + if: tea is skipped, so only momo's 2 is added."},
+  {d:13, q:"What does this print?", code:`def ends(word):\n    return word[0], word[-1]\n\na, b = ends("Dashain")\nprint(a + b)`, o:["Dn","Da","D n","('D', 'n')"], e:"Function + tuple unpacking + string indexing."},
+  {d:13, q:"What does this print?", code:`names = ["sita", "ram", "sita"]\nprint(sorted(set(names)))`, o:["['ram', 'sita']","['sita', 'ram', 'sita']","{'ram', 'sita'}","['sita', 'ram']"], e:"set() removes the duplicate. sorted() gives back a list in order."},
+  {d:13, q:"You want to store a menu: item name → price. Which collection fits best?", o:["Dictionary","List","Tuple","Set"], e:"A dictionary gives each price a name (key)."},
+  {d:13, q:"What does this print?", code:`nums = [5, 12, 7, 20]\ncount = 0\nfor n in nums:\n    if n > 10:\n        count += 1\nprint(count)`, o:["2","32","4","1"], e:"Only 12 and 20 are bigger than 10."},
+  {d:13, q:"What does this print?", code:`print(int("12") + len("12") + float("1.5"))`, o:["15.5","13.5","15","Error"], e:"12 + 2 + 1.5 = 15.5. Adding a float gives a float."},
+  {d:13, q:"What does this print?", code:`prices = [120, 80, 200]\ncheap = list(filter(lambda p: p < 150, prices))\nprint(sum(cheap) // len(cheap))`, o:["100","200","66","133"], e:"filter keeps 120 and 80. (120 + 80) // 2 = 100."},
+
+  /* ───── Day 14 ───── */
+  {d:14, q:"What does this print? (one per line)", code:`def shout(func):\n    def wrapper():\n        print("Start")\n        func()\n        print("End")\n    return wrapper\n\n@shout\ndef hello():\n    print("Hello")\n\nhello()`, o:["Start, Hello, End","Hello","Hello, Start, End","Start, End"], e:"The wrapper runs its own lines around the real function."},
+  {d:14, q:"`@timer` on the line above `def work():` is the same as …", o:["`work = timer(work)`","`timer = work(timer)`","`work = timer()`","`timer(work())`"], e:"@ is just a short way to wrap the function."},
+  {d:14, q:"What does this print?", code:`def fact(n):\n    if n == 1:\n        return 1\n    return n * fact(n - 1)\n\nprint(fact(5))`, o:["120","15","24","Error"], e:"5 × 4 × 3 × 2 × 1 = 120."},
+  {d:14, q:"Which two things must every recursive function have?", o:["A base case and a smaller step","A loop and a list","A decorator and yield","try and except"], e:"The base case stops it. The smaller step moves it towards the base case."},
+  {d:14, q:"What happens when you run this?", code:`def down(n):\n    print(n)\n    down(n - 1)\n\ndown(3)`, o:["It prints 3, 2, 1, 0, -1 ... then RecursionError","It prints 3, 2, 1","It prints 3","SyntaxError"], e:"There is no base case, so it never stops on its own."},
+  {d:14, q:"What does this print?", code:`def gen():\n    yield 1\n    yield 2\n\ng = gen()\nprint(next(g), next(g))`, o:["1 2","1 1","[1, 2]","2"], e:"Each next() continues from where the generator paused."},
+  {d:14, q:"What does this print? (one per line)", code:`g = (x * 2 for x in range(3))\nprint(list(g))\nprint(list(g))`, o:["[0, 2, 4], []","[0, 2, 4], [0, 2, 4]","[2, 4, 6], []","[], []"], e:"A generator can be used only once. The second time it is empty."},
+  {d:14, q:"What does this print?", code:`def outer():\n    def inner():\n        return "Hi"\n    return inner\n\nf = outer()\nprint(f())`, o:["Hi","inner","None","Error"], e:"outer() gives back the inner function. f() then runs it."},
+  {d:14, q:"You call next() on a generator that has no values left. What happens?", o:["StopIteration error","It starts again from the beginning","It returns 0","It returns None"], e:"A for loop handles StopIteration for you. next() does not."},
+
+  /* ───── Day 15 ───── */
+  {d:15, q:"What does this print?", code:`try:\n    print(10 / 0)\nexcept ZeroDivisionError:\n    print("Oops")`, o:["Oops","Error","0","Nothing"], e:"The error is caught, so the except block runs."},
+  {d:15, q:"What does this print? (one per line)", code:`try:\n    x = int("5")\nexcept ValueError:\n    print("Bad")\nelse:\n    print("Good", x)\nfinally:\n    print("Done")`, o:["Good 5, Done","Bad, Done","Good 5","Done"], e:"No error, so else runs. finally always runs."},
+  {d:15, q:"Which error does `[1, 2, 3][5]` raise?", o:["IndexError","KeyError","ValueError","TypeError"], e:"There is no item at position 5."},
+  {d:15, q:'Which error does `"5" + 5` raise?', o:["TypeError","ValueError","NameError","SyntaxError"], e:"You can't add text and a number. Convert one of them first."},
+  {d:15, q:"What does this print?", code:`def check_age(age):\n    if age < 0:\n        raise ValueError("Age can't be negative")\n    return age\n\ntry:\n    check_age(-3)\nexcept ValueError as e:\n    print(e)`, o:["Age can't be negative","ValueError","-3","Nothing"], e:"raise makes the error. as e holds its message."},
+  {d:15, q:"When does the `finally` block run?", o:["Always, error or no error","Only when there is an error","Only when there is no error","Never"], e:"Use it for clean-up work that must always happen."},
+  {d:15, q:"What does this print?", code:`try:\n    menu = {"tea": 40}\n    print(menu["coffee"])\nexcept ValueError:\n    print("A")\nexcept KeyError:\n    print("B")`, o:["B","A","A and B","Error"], e:"A missing key raises KeyError, so only the second except matches."},
+  {d:15, q:"What does this print? (one per line)", code:`try:\n    print("1")\n    int("x")\n    print("2")\nexcept ValueError:\n    print("3")\nprint("4")`, o:["1, 3, 4","1, 2, 3, 4","3, 4","1, 2, 4"], e:"The moment int(\"x\") fails, Python jumps to except. print(\"2\") is skipped."},
+  {d:15, q:"Why is a bare `except:` (catch everything) a bad habit?", o:["It hides mistakes like typos, so bugs are hard to find","It makes the program slower","Python doesn't allow it","It always crashes"], e:"Catch the error you expect, like ValueError, and let real bugs show."},
+];
+
+const ALL_DAYS = Object.keys(DAYS).map(Number);
+
+/* ───────── helpers ───────── */
+const LETTERS = ["A","B","C","D"];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const inline = s => esc(s).replace(/`([^`]+)`/g, "<code>$1</code>");
+const pad = n => String(n).padStart(2, "0");
+
+function highlight(code){
+  const re = /(#[^\n]*)|("[^"\n]*"|'[^'\n]*')|\b(if|elif|else|match|case|for|while|in|not|and|or|del|def|return|print|import|from|as|True|False|None|pass|break|continue|lambda|yield|try|except|finally|raise)\b|\b([A-Za-z_]\w*)(?=\()/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(code))){
+    const cls = m[1] ? "cm" : m[2] ? "str" : m[3] ? "kw" : "fn";
+    out += esc(code.slice(last, m.index)) + `<span class="${cls}">${esc(m[0])}</span>`;
+    last = re.lastIndex;
+  }
+  return out + esc(code.slice(last));
+}
+
+/* Seeded shuffle, so option letters stay the same every time the page opens (printed sheets match class mode). */
+function seeded(seed){ return () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; }; }
+function shuffle(list, rand = Math.random){
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(rand() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+QUESTIONS.forEach((q, i) => {
+  q.id = i;
+  const order = shuffle([0,1,2,3], seeded(i * 7919 + 17));
+  q.options = order.map(k => q.o[k]);
+  q.answer = order.indexOf(0);
+});
+
+/* ───────── state ───────── */
+const state = {
+  days: new Set(ALL_DAYS),
+  mode: "class",
+  order: [],
+  pos: 0,
+  picked: {},      // question id -> chosen option index, or -1 when only revealed
+  showAnswers: true
+};
+const pool = () => QUESTIONS.filter(q => state.days.has(q.d));
+
+function setOrder(kind){
+  const p = pool();
+  if (kind === "shuffle") state.order = shuffle(p).map(q => q.id);
+  else if (kind === "random") state.order = shuffle(p).slice(0, 15).map(q => q.id);
+  else state.order = p.map(q => q.id);
+  state.pos = 0;
+  state.picked = {};
+  render();
+}
+
+/* ───────── day chips ───────── */
+function renderChips(){
+  const box = $("dayChips");
+  const counts = {};
+  QUESTIONS.forEach(q => counts[q.d] = (counts[q.d] || 0) + 1);
+  const all = state.days.size === ALL_DAYS.length;
+  box.innerHTML = `<span class="label">Days</span>` +
+    `<button class="chip" data-day="all" aria-pressed="${all}">All<small>${QUESTIONS.length}</small></button>` +
+    Object.keys(DAYS).map(d => `<button class="chip" data-day="${d}" aria-pressed="${!all && state.days.has(+d)}" title="${esc(DAYS[d])}">Day ${pad(d)}<small>${counts[d]}</small></button>`).join("");
+}
+$("dayChips").addEventListener("click", e => {
+  const chip = e.target.closest(".chip"); if (!chip) return;
+  const d = chip.dataset.day;
+  if (d === "all") state.days = new Set(ALL_DAYS);
+  else {
+    const n = +d;
+    if (state.days.size === ALL_DAYS.length) state.days = new Set([n]);          // from All, pick just this day
+    else if (state.days.has(n)) { state.days.delete(n); if (!state.days.size) state.days = new Set(ALL_DAYS); }
+    else state.days.add(n);
+  }
+  renderChips();
+  setOrder("all");
+});
+
+/* ───────── class mode ───────── */
+function renderClass(){
+  const view = $("classView");
+  const total = state.order.length;
+  if (!total){ view.innerHTML = `<div class="card"><div class="card-body">No questions for these days.</div></div>`; return; }
+  const answered = Object.keys(state.picked).length;
+  const right = Object.entries(state.picked).filter(([id, k]) => QUESTIONS[id].answer === k).length;
+
+  if (state.pos >= total){
+    const tried = Object.values(state.picked).filter(k => k >= 0).length;
+    view.innerHTML = `<div class="card"><div class="rule"></div><div class="summary">
+      <div class="big">${right} / ${tried || 0}</div>
+      <h2>${tried ? (right / tried >= .8 ? "Excellent work!" : right / tried >= .5 ? "Good job! Keep practising." : "Keep going. Review the slides and try again.") : "Quiz finished"}</h2>
+      <p>${total} questions shown · ${tried} answered · ${right} correct</p>
+      <div class="row"><button class="btn" id="sumBack">Back to questions</button><button class="btn" id="sumAgain">Same questions again</button><button class="btn primary" id="sumNew">New random 15</button></div>
+    </div></div>`;
+    $("sumBack").onclick = () => { state.pos = total - 1; render(); };
+    $("sumAgain").onclick = () => { state.pos = 0; state.picked = {}; render(); };
+    $("sumNew").onclick = () => setOrder("random");
+    return;
+  }
+
+  const q = QUESTIONS[state.order[state.pos]];
+  const picked = state.picked[q.id];
+  const done = picked !== undefined;
+  const opts = q.options.map((text, k) => {
+    let cls = "opt";
+    if (done){
+      if (k === q.answer) cls += " correct";
+      else if (k === picked) cls += " wrong";
+      else cls += " dim";
+    }
+    return `<button class="${cls}" data-k="${k}" ${done ? "disabled" : ""}><span class="letter">${LETTERS[k]}</span><span>${inline(text)}</span></button>`;
+  }).join("");
+
+  view.innerHTML = `<div class="card"><div class="rule"></div><div class="card-body">
+    <div class="card-top"><span class="tag">Day ${pad(q.d)} · ${esc(DAYS[q.d])}</span><span class="qcount">QUESTION ${state.pos + 1} / ${total}</span></div>
+    <h2 class="question">${inline(q.q)}</h2>
+    ${q.code ? `<pre class="code"><code>${highlight(q.code)}</code></pre>` : ""}
+    <div class="options">${opts}</div>
+    ${done ? `<div class="explain"><strong>${picked === -1 ? "Answer" : picked === q.answer ? "Correct!" : "Not quite."} ${LETTERS[q.answer]}: ${inline(q.options[q.answer])}</strong><br>${inline(q.e)}</div>` : ""}
+    <div class="nav">
+      <button class="btn" id="prev" ${state.pos === 0 ? "disabled" : ""}>← Previous</button>
+      <span class="score">Score <b>${right}</b> / ${answered}</span>
+      ${done ? `<button class="btn primary" id="next">${state.pos === total - 1 ? "See result →" : "Next →"}</button>`
+             : `<button class="btn" id="reveal">Show answer</button>`}
+    </div>
+    <div class="progress"><span style="width:${((state.pos + 1) / total) * 100}%"></span></div>
+  </div></div>
+  <p class="hint no-print">Keys: A–D or 1–4 to answer · Space to show the answer · ← → to move · F for fullscreen</p>`;
+
+  view.querySelectorAll(".opt").forEach(b => b.onclick = () => choose(+b.dataset.k));
+  $("prev").onclick = prev;
+  if ($("next")) $("next").onclick = next;
+  if ($("reveal")) $("reveal").onclick = reveal;
+}
+function current(){ return QUESTIONS[state.order[state.pos]]; }
+function choose(k){ const q = current(); if (!q || state.picked[q.id] !== undefined) return; state.picked[q.id] = k; render(); }
+function reveal(){ const q = current(); if (!q || state.picked[q.id] !== undefined) return; state.picked[q.id] = -1; render(); }
+function next(){ if (state.pos < state.order.length){ state.pos++; render(); } }
+function prev(){ if (state.pos > 0){ state.pos = Math.min(state.pos - 1, state.order.length - 1); render(); } }
+
+/* ───────── answer sheet ───────── */
+function renderSheet(){
+  const view = $("sheetView");
+  const qs = state.order.map(id => QUESTIONS[id]);
+  const days = [...state.days].sort((a, b) => a - b).map(pad).join(", ");
+  view.className = state.showAnswers ? "show-answers" : "";
+  view.innerHTML = `
+    <div class="row no-print" style="margin-bottom:14px">
+      <label class="toggle"><input type="checkbox" id="showAns" ${state.showAnswers ? "checked" : ""}> Show answers</label>
+      <span class="spacer"></span>
+      <button class="btn" id="printBtn">Print</button>
+    </div>
+    <h2 style="font-family:var(--serif);font-weight:600;margin:0 0 4px">Python Quiz · Day ${days}</h2>
+    <p style="color:var(--muted);margin:0 0 14px">Name: ______________________ &nbsp; Date: ____________ &nbsp; Score: ____ / ${qs.length}</p>
+    <div class="sheet">${qs.map((q, i) => `
+      <article class="sq">
+        <div class="sq-head"><span class="sq-num">${i + 1}.</span><span class="sq-q">${inline(q.q)}</span><span class="sq-day">Day ${pad(q.d)}</span></div>
+        ${q.code ? `<pre class="code"><code>${highlight(q.code)}</code></pre>` : ""}
+        <ol>${q.options.map((t, k) => `<li class="${k === q.answer ? "is-answer" : ""}"><b>${LETTERS[k]}</b>${inline(t)}</li>`).join("")}</ol>
+        <div class="sq-ex">${inline(q.e)}</div>
+      </article>`).join("")}
+    </div>
+    <div class="key"><h3>Answer key</h3><p>${qs.map((q, i) => `${i + 1}-${LETTERS[q.answer]}`).join(" &nbsp; ")}</p></div>`;
+  $("showAns").onchange = e => { state.showAnswers = e.target.checked; renderSheet(); };
+  $("printBtn").onclick = () => window.print();
+}
+
+/* ───────── wiring ───────── */
+function render(){
+  $("classView").hidden = state.mode !== "class";
+  $("sheetView").hidden = state.mode !== "sheet";
+  $("tabClass").setAttribute("aria-selected", state.mode === "class");
+  $("tabSheet").setAttribute("aria-selected", state.mode === "sheet");
+  if (state.mode === "class") renderClass(); else renderSheet();
+}
+$("tabClass").onclick = () => { state.mode = "class"; render(); };
+$("tabSheet").onclick = () => { state.mode = "sheet"; render(); };
+$("btnAll").onclick = () => setOrder("all");
+$("btnShuffle").onclick = () => setOrder("shuffle");
+$("btnRandom").onclick = () => setOrder("random");
+
+document.addEventListener("keydown", e => {
+  if (state.mode !== "class" || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.closest && e.target.closest("input")) return;
+  const key = e.key.toLowerCase();
+  const idx = ["a","b","c","d"].indexOf(key) >= 0 ? ["a","b","c","d"].indexOf(key) : ["1","2","3","4"].indexOf(key);
+  if (idx >= 0){ e.preventDefault(); choose(idx); return; }
+  if (key === " " || key === "enter"){
+    e.preventDefault();
+    const q = current();
+    if (q && state.picked[q.id] === undefined) reveal(); else next();
+  }
+  if (key === "arrowright"){ e.preventDefault(); next(); }
+  if (key === "arrowleft"){ e.preventDefault(); prev(); }
+  if (key === "f"){ e.preventDefault(); document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+});
+
+renderChips();
+setOrder("all");
+</script>
+</body>
+</html>

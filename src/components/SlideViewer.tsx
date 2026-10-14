@@ -16,6 +16,21 @@ import {
 import { adjacentDay, type DayMeta } from "@/lib/days";
 import { useNav } from "./AppShell";
 
+interface DeckLike {
+  id: string;
+  title: string;
+  fullTitle: string;
+  file: string;
+  route: string;
+  dir?: string;
+  source?: string;
+}
+
+interface NavLike {
+  route: string;
+  fullTitle: string;
+}
+
 function ToolButton({
   title,
   onClick,
@@ -55,15 +70,38 @@ function ToolButton({
   );
 }
 
-export function SlideViewer({ day }: { day: DayMeta }) {
+export function SlideViewer({
+  day,
+  prev: prevOverride,
+  next: nextOverride,
+  kicker,
+}: {
+  day: DeckLike;
+  prev?: NavLike | undefined;
+  next?: NavLike | undefined;
+  kicker?: string;
+}) {
   const { setMobileOpen } = useNav();
   const frameRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const prev = adjacentDay(day.id, -1);
-  const next = adjacentDay(day.id, 1);
+  const autoPrev = adjacentDay(day.id, -1);
+  const autoNext = adjacentDay(day.id, 1);
+  // Explicit props win when passed (vacation pages); otherwise fall back to day adjacency.
+  // Note: `??` also covers the ends of the vacation list (undefined stays undefined
+  // because vacation ids are not in DAYS, so auto is undefined too).
+  const prev: NavLike | undefined = prevOverride ?? autoPrev;
+  const next: NavLike | undefined = nextOverride ?? autoNext;
+
+  const defaultKicker =
+    (day as DayMeta).dir !== undefined
+      ? `${day.id.replace("day", "Day ")} · ${(day as DayMeta).dir}`
+      : (day as { source?: string }).source
+        ? `Vacation · ${(day as { source?: string }).source}`
+        : day.id;
+  const kickerText = kicker ?? defaultKicker;
 
   useEffect(() => {
     setLoading(true);
@@ -108,7 +146,7 @@ export function SlideViewer({ day }: { day: DayMeta }) {
 
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
-            {day.id.replace("day", "Day ")} · {day.dir}
+            {kickerText}
           </p>
           <h1 className="truncate text-[15px] font-semibold tracking-tight">{day.title}</h1>
         </div>
@@ -117,7 +155,7 @@ export function SlideViewer({ day }: { day: DayMeta }) {
           <Link
             href={prev?.route ?? "#"}
             aria-disabled={!prev}
-            title={prev ? `Previous: ${prev.fullTitle}` : "No previous day"}
+            title={prev ? `Previous: ${prev.fullTitle}` : "No previous deck"}
             className={`flex h-9 items-center gap-1 rounded-lg border border-stone-200 px-2.5 text-sm font-medium transition-colors ${
               prev
                 ? "bg-white text-stone-600 hover:bg-stone-100 hover:text-stone-900"
@@ -130,7 +168,7 @@ export function SlideViewer({ day }: { day: DayMeta }) {
           <Link
             href={next?.route ?? "#"}
             aria-disabled={!next}
-            title={next ? `Next: ${next.fullTitle}` : "No next day yet"}
+            title={next ? `Next: ${next.fullTitle}` : "No next deck yet"}
             className={`flex h-9 items-center gap-1 rounded-lg px-2.5 text-sm font-medium transition-colors ${
               next
                 ? "bg-stone-900 text-white hover:bg-stone-700"

@@ -1,7 +1,7 @@
 import { BookOpen, GitBranch, SquareTerminal, Code2 } from "lucide-react";
-import type { DayMeta } from "@/lib/days";
+import type { DayIcon as DayIconName } from "@/lib/days.generated";
 
-export function DayIcon({ day, size = 17 }: { day: DayMeta; size?: number }) {
+export function DayIcon({ day, size = 17 }: { day: { icon: DayIconName }; size?: number }) {
   switch (day.icon) {
     case "git":
       return <GitBranch size={size} strokeWidth={1.8} />;
