@@ -7,13 +7,14 @@ import {
   ChevronRight,
   Download,
   ExternalLink,
+  FolderDown,
   Loader2,
   Maximize,
   Menu,
   Minimize,
   RotateCcw,
 } from "lucide-react";
-import { adjacentDay, type DayMeta } from "@/lib/days";
+import { ALL_SLIDES_ZIP, adjacentDay, type DayMeta } from "@/lib/days";
 import { useNav } from "./AppShell";
 
 interface DeckLike {
@@ -188,6 +189,9 @@ export function SlideViewer({
           </ToolButton>
           <ToolButton title="Download deck (HTML file)" href={day.file} download>
             <Download size={16} strokeWidth={1.8} />
+          </ToolButton>
+          <ToolButton title="Download all decks (ZIP file)" href={ALL_SLIDES_ZIP} download>
+            <FolderDown size={16} strokeWidth={1.8} />
           </ToolButton>
           <ToolButton title="Open standalone deck in new tab" href={day.file}>
             <ExternalLink size={16} strokeWidth={1.8} />

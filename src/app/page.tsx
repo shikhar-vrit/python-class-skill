@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, ChevronUp, Menu, Palmtree } from "lucide-react";
-import { DAYS } from "@/lib/days";
+import { ArrowRight, ChevronDown, ChevronUp, FolderDown, Menu, Palmtree } from "lucide-react";
+import { ALL_SLIDES_ZIP, DAYS } from "@/lib/days";
 import { VACATIONS } from "@/lib/vacations";
 import { DayIcon } from "@/components/DayIcon";
 import { useNav } from "@/components/AppShell";
@@ -39,6 +39,18 @@ export default function HomePage() {
               · {DAYS.length}
             </span>
           </h2>
+          <div className="flex items-center gap-2">
+          {DAYS.length > 0 && (
+            <a
+              href={ALL_SLIDES_ZIP}
+              download
+              title="Download all decks (ZIP file)"
+              className="flex h-9 items-center gap-1.5 rounded-lg border border-stone-200 bg-white px-3 text-sm font-medium text-stone-600 transition-colors hover:bg-stone-100 hover:text-stone-900"
+            >
+              <FolderDown size={16} strokeWidth={1.8} />
+              <span>Download all</span>
+            </a>
+          )}
           <button
             onClick={() => setDaysOpen((v) => !v)}
             aria-expanded={daysOpen}
@@ -52,6 +64,7 @@ export default function HomePage() {
               <ChevronDown size={17} strokeWidth={1.8} />
             )}
           </button>
+          </div>
         </div>
         <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-stone-500">
           One route per day. Each deck runs fullscreen in its own page — pick up

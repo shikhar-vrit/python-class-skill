@@ -8,6 +8,7 @@ next-env.d.ts
 
 # Generated slide copies + manifest (rebuilt by predev/prebuild on every machine and on Vercel)
 public/slides/*.html
+public/slides/all-slides.zip
 src/lib/days.generated.ts
 public/vacation/*.html
 src/lib/vacations.generated.ts

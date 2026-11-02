@@ -3,6 +3,9 @@ import { DAYS, type DayMeta } from "./days.generated";
 export type { DayMeta };
 export { DAYS };
 
+/** Zip of every day deck, written by scripts/sync-slides.mjs */
+export const ALL_SLIDES_ZIP = "/slides/all-slides.zip";
+
 export function getDay(dayId: string): DayMeta | undefined {
   return DAYS.find((d) => d.id === dayId.toLowerCase());
 }
