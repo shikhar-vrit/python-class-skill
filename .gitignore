@@ -12,6 +12,8 @@ public/slides/all-slides.zip
 src/lib/days.generated.ts
 public/vacation/*.html
 src/lib/vacations.generated.ts
+public/revision/*.html
+src/lib/revisions.generated.ts
 
 # Python class material (never deploy these)
 **/.venv/

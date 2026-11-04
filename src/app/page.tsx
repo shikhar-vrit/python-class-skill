@@ -2,8 +2,17 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, ChevronUp, FolderDown, Menu, Palmtree } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpenCheck,
+  ChevronDown,
+  ChevronUp,
+  FolderDown,
+  Menu,
+  Palmtree,
+} from "lucide-react";
 import { ALL_SLIDES_ZIP, DAYS } from "@/lib/days";
+import { REVISIONS } from "@/lib/revisions";
 import { VACATIONS } from "@/lib/vacations";
 import { DayIcon } from "@/components/DayIcon";
 import { useNav } from "@/components/AppShell";
@@ -11,6 +20,7 @@ import { useNav } from "@/components/AppShell";
 export default function HomePage() {
   const { setMobileOpen } = useNav();
   const [daysOpen, setDaysOpen] = useState(true);
+  const [revisionOpen, setRevisionOpen] = useState(true);
   const [vacationOpen, setVacationOpen] = useState(true);
 
   return (
@@ -109,6 +119,73 @@ export default function HomePage() {
             No decks found. Add <span className="font-mono">Day-01/slides/*.html</span> and
             run <span className="font-mono">npm run sync:slides</span>.
           </p>
+        )}
+
+        {REVISIONS.length > 0 && (
+          <>
+            <div className="mt-12 flex items-center justify-between gap-3">
+              <h2 className="flex items-center gap-2 font-serif text-3xl font-semibold tracking-tight">
+                <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-100 text-sky-700">
+                  <BookOpenCheck size={19} strokeWidth={1.8} />
+                </span>
+                Revision{" "}
+                <span className="align-middle font-sans text-sm font-medium text-stone-400">
+                  · {REVISIONS.length}
+                </span>
+              </h2>
+              <button
+                onClick={() => setRevisionOpen((v) => !v)}
+                aria-expanded={revisionOpen}
+                aria-label={revisionOpen ? "Collapse Revision section" : "Expand Revision section"}
+                title={revisionOpen ? "Collapse" : "Expand"}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-sky-200 bg-sky-50 text-sky-700 transition-colors hover:bg-sky-100"
+              >
+                {revisionOpen ? (
+                  <ChevronUp size={17} strokeWidth={1.8} />
+                ) : (
+                  <ChevronDown size={17} strokeWidth={1.8} />
+                )}
+              </button>
+            </div>
+            <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-stone-500">
+              Topic recaps from{" "}
+              <span className="font-mono text-[13px]">*_revision/slides/*.html</span> —
+              each runs fullscreen in its own page.
+            </p>
+
+            {revisionOpen && (
+            <ul className="mt-8 space-y-3">
+              {REVISIONS.map((rev) => (
+                <li key={rev.id}>
+                  <Link
+                    href={rev.route}
+                    className="group flex items-center gap-4 rounded-xl border border-sky-200 bg-sky-50 p-4 transition-colors hover:border-sky-300 hover:bg-sky-100/60"
+                  >
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-600 text-white">
+                      <BookOpenCheck size={18} strokeWidth={1.8} />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[15px] font-semibold tracking-tight">
+                        {rev.title}
+                      </span>
+                      <span className="block truncate font-mono text-xs text-stone-500">
+                        {rev.route} · {rev.dir}
+                      </span>
+                    </span>
+                    <span className="shrink-0 text-stone-400">
+                      <DayIcon day={rev} />
+                    </span>
+                    <ArrowRight
+                      size={17}
+                      strokeWidth={1.8}
+                      className="shrink-0 text-stone-300 transition-transform group-hover:translate-x-0.5 group-hover:text-stone-500"
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            )}
+          </>
         )}
 
         {VACATIONS.length > 0 && (

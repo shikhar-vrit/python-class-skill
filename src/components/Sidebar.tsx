@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BookOpenCheck,
   ChevronDown,
   ChevronUp,
   ChevronsLeft,
@@ -14,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { DAYS } from "@/lib/days";
+import { REVISIONS } from "@/lib/revisions";
 import { VACATIONS } from "@/lib/vacations";
 import { DayIcon } from "./DayIcon";
 import { cn } from "@/lib/cn";
@@ -28,6 +30,7 @@ interface Props {
 function Nav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
   const [daysOpen, setDaysOpen] = useState(true);
+  const [revisionOpen, setRevisionOpen] = useState(true);
   const [vacationOpen, setVacationOpen] = useState(true);
   return (
     <nav className="flex-1 overflow-y-auto px-3 py-4 slim-scroll">
@@ -121,6 +124,85 @@ function Nav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () =>
           );
         })}
       </ul>
+      )}
+
+      {REVISIONS.length > 0 && (
+        <>
+          {!collapsed ? (
+            <button
+              onClick={() => setRevisionOpen((v) => !v)}
+              aria-expanded={revisionOpen}
+              aria-label={revisionOpen ? "Collapse Revision section" : "Expand Revision section"}
+              title={revisionOpen ? "Collapse Revision" : "Expand Revision"}
+              className="mb-2 mt-5 flex w-full items-center justify-between rounded-md px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+            >
+              <span>
+                Revision · {REVISIONS.length}
+              </span>
+              {revisionOpen ? (
+                <ChevronUp size={14} strokeWidth={2} />
+              ) : (
+                <ChevronDown size={14} strokeWidth={2} />
+              )}
+            </button>
+          ) : (
+            <div className="mx-3 my-4 h-px bg-stone-200" />
+          )}
+          {(collapsed || revisionOpen) && (
+          <ul className="space-y-1">
+            {REVISIONS.map((rev) => {
+              const active = pathname === rev.route;
+              return (
+                <li key={rev.id}>
+                  <Link
+                    href={rev.route}
+                    onClick={onNavigate}
+                    title={collapsed ? rev.fullTitle : undefined}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                      active
+                        ? "bg-stone-900 text-white"
+                        : "text-stone-600 hover:bg-stone-100 hover:text-stone-900",
+                      collapsed && "justify-center px-0"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+                        active
+                          ? "bg-white/15 text-white"
+                          : "bg-sky-100 text-sky-700 group-hover:bg-sky-200"
+                      )}
+                    >
+                      <BookOpenCheck size={15} strokeWidth={1.8} />
+                    </span>
+                    {!collapsed && (
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium leading-tight">
+                          {rev.title}
+                        </span>
+                        <span
+                          className={cn(
+                            "block truncate text-xs leading-tight",
+                            active ? "text-stone-300" : "text-stone-400"
+                          )}
+                        >
+                          {rev.route}
+                        </span>
+                      </span>
+                    )}
+                    {!collapsed && (
+                      <span className={cn("ml-auto shrink-0", active ? "text-stone-300" : "text-stone-400")}>
+                        <DayIcon day={rev} size={16} />
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          )}
+        </>
       )}
 
       {VACATIONS.length > 0 && (
