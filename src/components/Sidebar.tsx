@@ -9,6 +9,7 @@ import {
   ChevronUp,
   ChevronsLeft,
   ChevronsRight,
+  ClipboardList,
   House,
   Layers,
   Palmtree,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { DAYS } from "@/lib/days";
 import { REVISIONS } from "@/lib/revisions";
+import { TASKS } from "@/lib/tasks";
 import { VACATIONS } from "@/lib/vacations";
 import { DayIcon } from "./DayIcon";
 import { cn } from "@/lib/cn";
@@ -31,6 +33,7 @@ function Nav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () =>
   const pathname = usePathname();
   const [daysOpen, setDaysOpen] = useState(true);
   const [revisionOpen, setRevisionOpen] = useState(true);
+  const [taskOpen, setTaskOpen] = useState(true);
   const [vacationOpen, setVacationOpen] = useState(true);
   return (
     <nav className="flex-1 overflow-y-auto px-3 py-4 slim-scroll">
@@ -194,6 +197,85 @@ function Nav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () =>
                     {!collapsed && (
                       <span className={cn("ml-auto shrink-0", active ? "text-stone-300" : "text-stone-400")}>
                         <DayIcon day={rev} size={16} />
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+          )}
+        </>
+      )}
+
+      {TASKS.length > 0 && (
+        <>
+          {!collapsed ? (
+            <button
+              onClick={() => setTaskOpen((v) => !v)}
+              aria-expanded={taskOpen}
+              aria-label={taskOpen ? "Collapse Task section" : "Expand Task section"}
+              title={taskOpen ? "Collapse Task" : "Expand Task"}
+              className="mb-2 mt-5 flex w-full items-center justify-between rounded-md px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400 transition-colors hover:bg-stone-100 hover:text-stone-600"
+            >
+              <span>
+                Task · {TASKS.length}
+              </span>
+              {taskOpen ? (
+                <ChevronUp size={14} strokeWidth={2} />
+              ) : (
+                <ChevronDown size={14} strokeWidth={2} />
+              )}
+            </button>
+          ) : (
+            <div className="mx-3 my-4 h-px bg-stone-200" />
+          )}
+          {(collapsed || taskOpen) && (
+          <ul className="space-y-1">
+            {TASKS.map((task) => {
+              const active = pathname === task.route;
+              return (
+                <li key={task.id}>
+                  <Link
+                    href={task.route}
+                    onClick={onNavigate}
+                    title={collapsed ? task.fullTitle : undefined}
+                    className={cn(
+                      "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors",
+                      active
+                        ? "bg-stone-900 text-white"
+                        : "text-stone-600 hover:bg-stone-100 hover:text-stone-900",
+                      collapsed && "justify-center px-0"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+                        active
+                          ? "bg-white/15 text-white"
+                          : "bg-emerald-100 text-emerald-700 group-hover:bg-emerald-200"
+                      )}
+                    >
+                      <ClipboardList size={15} strokeWidth={1.8} />
+                    </span>
+                    {!collapsed && (
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium leading-tight">
+                          {task.title}
+                        </span>
+                        <span
+                          className={cn(
+                            "block truncate text-xs leading-tight",
+                            active ? "text-stone-300" : "text-stone-400"
+                          )}
+                        >
+                          {task.route}
+                        </span>
+                      </span>
+                    )}
+                    {!collapsed && (
+                      <span className={cn("ml-auto shrink-0", active ? "text-stone-300" : "text-stone-400")}>
+                        <DayIcon day={task} size={16} />
                       </span>
                     )}
                   </Link>
